@@ -26,7 +26,7 @@ namespace LH.CommandLine.FunctionalTests
 
             _application.Run(args);
 
-            Assert.Contains(_outputWriter.GetOutput(), "1.0.0");
+            Assert.Contains("1.0.0", _outputWriter.GetOutput());
         }
 
         [Fact]
@@ -41,9 +41,9 @@ namespace LH.CommandLine.FunctionalTests
         }
 
         [Fact]
-        public void RegisterAndDefaultCommand()
+        public void RegisterAndRunDefaultCommand()
         {
-            _application.SetDefaultCommand<TestCommand, TestOptions>("cmd");
+            _application.SetDefaultCommand<TestCommand, TestOptions>();
 
             _application.Run(new string[0]);
 

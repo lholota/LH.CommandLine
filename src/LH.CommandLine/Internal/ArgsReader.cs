@@ -1,6 +1,6 @@
-﻿namespace LH.CommandLine
+﻿namespace LH.CommandLine.Internal
 {
-    public class ArgsReader
+    internal class ArgsReader
     {
         private readonly string[] _args;
 

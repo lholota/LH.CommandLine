@@ -8,7 +8,13 @@ namespace LH.CommandLine.FunctionalTests.Helpers
 
         public TCommand CreateCommand<TCommand>()
         {
-            throw new NotImplementedException();
+            if (typeof(TCommand) == typeof(TestCommand))
+            {
+                CreatedCommand = new TestCommand();
+                return (TCommand) CreatedCommand;
+            }
+
+            throw new NotSupportedException();
         }
     }
 }
