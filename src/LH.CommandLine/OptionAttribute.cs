@@ -26,5 +26,7 @@ namespace LH.CommandLine
         }
 
         internal string[] Aliases { get; }
+
+        public object DefaultValue { get; set; }
     }
 }

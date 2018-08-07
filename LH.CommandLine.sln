@@ -11,14 +11,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9C843601
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{C3CDF0F4-454C-433F-A47E-2F8BA8B6A66A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LH.CommandLine.DependencyInjection", "src\LH.CommandLine.DependencyInjection\LH.CommandLine.DependencyInjection.csproj", "{FBA9E2EA-CADF-419F-99EE-2C790A67F088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LH.CommandLine.DependencyInjection", "src\LH.CommandLine.DependencyInjection\LH.CommandLine.DependencyInjection.csproj", "{FBA9E2EA-CADF-419F-99EE-2C790A67F088}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{974AA1FF-B3EB-44B7-92B0-7AB78D591F18}"
 	ProjectSection(SolutionItems) = preProject
 		Notes.txt = Notes.txt
+		OptionsNotes.txt = OptionsNotes.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LH.CommandLine.FunctionalTests", "tests\LH.CommandLine.FunctionalTests\LH.CommandLine.FunctionalTests.csproj", "{A818782C-9F3D-45F9-83CA-03629BD22D85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LH.CommandLine.FunctionalTests", "tests\LH.CommandLine.FunctionalTests\LH.CommandLine.FunctionalTests.csproj", "{A818782C-9F3D-45F9-83CA-03629BD22D85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,7 +11,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [InlineData(new[] { "-n", "MyName" }, "MyName")]
         public void ParseStringOptions(string[] args, string expectedValue)
         {
-            var parser = new OptionParser<StringOptions>();
+            var parser = new OptionsParser<StringOptions>();
             var options = parser.Parse(args);
 
             Assert.Equal(expectedValue, options.StringOption);
@@ -21,7 +21,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [InlineData(new object[] { new[] { "--name", "aaaa@bbbb" } })]
         public void ThrowWhenStringFailsValidation(string[] args)
         {
-            var parser = new OptionParser<StringOptions>();
+            var parser = new OptionsParser<StringOptions>();
 
             Assert.Throws<Exception>(() => parser.Parse(args));
         }

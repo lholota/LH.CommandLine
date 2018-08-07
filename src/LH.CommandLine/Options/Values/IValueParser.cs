@@ -2,6 +2,6 @@
 {
     internal interface IValueParser
     {
-        object Parse(string input);
+        object Parse(string rawValue);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LH.CommandLine
+﻿namespace LH.CommandLine
 {
     public interface IOutputWriter
     {

@@ -2,9 +2,9 @@
 {
     internal class StringParser : IValueParser
     {
-        public object Parse(string input)
+        public object Parse(string rawValue)
         {
-            return input;
+            return rawValue;
         }
     }
 }
