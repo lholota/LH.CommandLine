@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using LH.CommandLine.Internal;
 
@@ -28,10 +29,30 @@ namespace LH.CommandLine
             _commands.Add(name, new OptionsCommandDefinition<TCommand, TOptions>(_commandFactory));
         }
 
+        public void AddCommand<TCommand>(string name)
+            where TCommand : ICommand
+        {
+            _commands.Add(name, new CommandDefinition<TCommand>(_commandFactory));
+        }
+
         public void SetDefaultCommand<TCommand, TOptions>()
             where TCommand : ICommand<TOptions>
         {
             _defaultCommandDefinition = new OptionsCommandDefinition<TCommand, TOptions>(_commandFactory);
+        }
+
+        public void SetDefaultCommand<TCommand>()
+            where TCommand : ICommand
+        {
+            _defaultCommandDefinition = new CommandDefinition<TCommand>(_commandFactory);
+        }
+
+        public void AddCommandGroup(string groupName, Action<ICommandGroupBuilder> configureGroupAction)
+        {
+            var commandGroupDefinition = new CommandGroupDefinition(_commandFactory);
+            configureGroupAction.Invoke(commandGroupDefinition);
+
+            _commands.Add(groupName, commandGroupDefinition);
         }
 
         public void Run(string[] args)
@@ -44,13 +65,13 @@ namespace LH.CommandLine
 
             if (args.Length == 0)
             {
-                _defaultCommandDefinition.Execute(args);
+                _defaultCommandDefinition.Execute(args, 0);
                 return;
             }
 
             var commands = _commands[args[0]];
 
-            commands.Execute(args);
+            commands.Execute(args, 1);
         }
     }
 }

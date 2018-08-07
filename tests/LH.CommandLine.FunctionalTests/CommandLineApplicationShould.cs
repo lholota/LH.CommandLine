@@ -30,9 +30,9 @@ namespace LH.CommandLine.FunctionalTests
         }
 
         [Fact]
-        public void RegisterAndRunCommand()
+        public void RegisterAndRunCommandWithoutOptions()
         {
-            _application.AddCommand<TestCommand, TestOptions>("cmd");
+            _application.AddCommand<TestCommand>("cmd");
 
             _application.Run(new[] { "cmd" });
 
@@ -41,14 +41,106 @@ namespace LH.CommandLine.FunctionalTests
         }
 
         [Fact]
-        public void RegisterAndRunDefaultCommand()
+        public void RegisterAndRunCommandWithOptions()
         {
-            _application.SetDefaultCommand<TestCommand, TestOptions>();
+            _application.AddCommand<TestCommandWithOptions, TestOptions>("cmd");
+
+            _application.Run(new[] { "--name", "some-value" });
+
+            var command = Assert.IsType<TestCommandWithOptions>(_commandFactory.CreatedCommand);
+
+            Assert.True(command.HasBeenExecuted);
+            Assert.Equal("some-value", command.OptionValue);
+        }
+
+        [Fact]
+        public void RegisterAndRunDefaultCommandWithoutOptions()
+        {
+            _application.SetDefaultCommand<TestCommand>();
 
             _application.Run(new string[0]);
 
             var command = Assert.IsType<TestCommand>(_commandFactory.CreatedCommand);
             Assert.True(command.HasBeenExecuted);
+        }
+
+        [Fact]
+        public void RegisterAndRunDefaultCommandWithOptionsCommand()
+        {
+            _application.SetDefaultCommand<TestCommandWithOptions, TestOptions>();
+
+            _application.Run(new[]{ "--name", "some-value" });
+
+            var command = Assert.IsType<TestCommandWithOptions>(_commandFactory.CreatedCommand);
+
+            Assert.True(command.HasBeenExecuted);
+            Assert.Equal("some-value", command.OptionValue);
+        }
+
+        [Fact]
+        public void RegisterAndRunCommandWithoutOptionsInGroup()
+        {
+            _application.AddCommandGroup("group", cfg =>
+            {
+                cfg.AddCommand<TestCommand>("cmd");
+            });
+
+            _application.Run(new[] { "group", "cmd" });
+
+            var command = Assert.IsType<TestCommand>(_commandFactory.CreatedCommand);
+            Assert.True(command.HasBeenExecuted);
+        }
+
+        [Fact]
+        public void RegisterAndRunCommandWithOptionsInGroup()
+        {
+            _application.AddCommandGroup("group", cfg =>
+            {
+                cfg.AddCommand<TestCommandWithOptions, TestOptions>("cmd");
+            });
+
+            _application.Run(new[] { "group", "cmd", "--name", "some-value" });
+
+            var command = Assert.IsType<TestCommandWithOptions>(_commandFactory.CreatedCommand);
+
+            Assert.True(command.HasBeenExecuted);
+            Assert.Equal("some-value", command.OptionValue);
+        }
+
+        [Fact]
+        public void RegisterAndRunCommandWithoutOptionsInNestedGroup()
+        {
+            _application.AddCommandGroup("group", cfg =>
+            {
+                cfg.AddCommandGroup("nested", nestedCfg =>
+                {
+                    nestedCfg.AddCommand<TestCommand>("cmd");
+                });
+            });
+
+            _application.Run(new[] { "group", "nested", "cmd" });
+
+            var command = Assert.IsType<TestCommand>(_commandFactory.CreatedCommand);
+            Assert.True(command.HasBeenExecuted);
+        }
+
+        [Fact]
+        public void RegisterAndRunCommandWithOptionsInNestedGroup()
+        {
+            _application.AddCommandGroup("group", cfg =>
+            {
+                cfg.AddCommandGroup("nested", nestedCfg =>
+                {
+                    nestedCfg.AddCommand<TestCommandWithOptions, TestOptions>("cmd");
+                });
+            });
+
+            _application.Run(new[] { "group", "nested", "cmd", "--name", "some-value" });
+
+            var command = Assert.IsType<TestCommandWithOptions>(_commandFactory.CreatedCommand);
+
+            Assert.True(command.HasBeenExecuted);
+            Assert.Equal("some-value", command.OptionValue);
         }
     }
 }

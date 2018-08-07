@@ -10,7 +10,7 @@
             _commandFactory = commandFactory;
         }
 
-        public void Execute(string[] args)
+        public void Execute(string[] args, int startIndex)
         {
             var command = _commandFactory.CreateCommand<TCommand>();
 

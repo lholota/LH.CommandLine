@@ -2,6 +2,6 @@
 {
     internal interface IExecutable
     {
-        void Execute(string[] args);
+        void Execute(string[] args, int startIndex);
     }
 }
