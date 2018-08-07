@@ -3,30 +3,21 @@
 namespace LH.CommandLine
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class OptionAttribute : Attribute
+    public class OptionAttribute : NamedAttribute
     {
-        public OptionAttribute(char shortName)
-             : this(shortName, null)
+        public OptionAttribute(char shortName) 
+            : base(shortName)
         {
-            Aliases = new[] { $"--{shortName}" };
         }
 
-        public OptionAttribute(string longName)
+        public OptionAttribute(string longName) 
+            : base(longName)
         {
-            Aliases = new[] {$"--{longName}"};
         }
 
-        public OptionAttribute(char shortName, string longName)
+        public OptionAttribute(char shortName, string longName) 
+            : base(shortName, longName)
         {
-            Aliases = new[]
-            {
-                $"-{shortName}",
-                $"--{longName}"
-            };
         }
-
-        internal string[] Aliases { get; }
-
-        public object DefaultValue { get; set; }
     }
 }

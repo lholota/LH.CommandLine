@@ -15,18 +15,32 @@ namespace LH.CommandLine.Options
             _properties = GetOptionPropertiesFromType(type);
         }
 
-        public bool TryGetSwitchPropertyByName(string name, out OptionProperty optionProperty)
+        public bool TryGetSwitchPropertyByName(string name, out OptionProperty optionProperty, out object switchValue)
         {
-            optionProperty = _properties
-                .SingleOrDefault(x => x.IsNamed && x.IsSwitch && x.Aliases.Contains(name));
+            foreach (var property in _properties)
+            {
+                foreach (var propertySwitch in property.Switches)
+                {
+                    if (propertySwitch.Aliases.Contains(name))
+                    {
+                        optionProperty = property;
+                        switchValue = propertySwitch.Value;
 
-            return optionProperty != null;
+                        return true;
+                    }
+                }
+            }
+
+            optionProperty = null;
+            switchValue = null;
+
+            return false;
         }
 
         public bool TryGetPropertyByName(string name, out OptionProperty optionProperty)
         {
             optionProperty = _properties
-                .SingleOrDefault(x => x.IsNamed && x.Aliases.Contains(name));
+                .SingleOrDefault(x => x.IsOption && x.OptionAliases.Contains(name));
 
             return optionProperty != null;
         }
@@ -46,14 +60,9 @@ namespace LH.CommandLine.Options
 
             foreach (var propertyInfo in propertyInfos)
             {
-                var optionAttribute = propertyInfo.GetCustomAttribute<OptionAttribute>();
-                var argumentAttribute = propertyInfo.GetCustomAttribute<ArgumentAttribute>();
-
-                if (optionAttribute != null)
+                if (OptionProperty.IsOptionProperty(propertyInfo))
                 {
-                    var optionProperty = new OptionProperty(optionAttribute, argumentAttribute, propertyInfo);
-
-                    optionProperties.Add(optionProperty);
+                    optionProperties.Add(new OptionProperty(propertyInfo));
                 }
             }
 

@@ -1,0 +1,12 @@
+Property can be
+- Named option -> can have default value
+- Positional argument -> can have default value
+- Both
+- Bool property with a switch -> Does this make sense?
+
+
+Attributes validator
+==========================
+- Default value of different type than property -> fail
+- Switch values (when present and when not present) of different type than property -> fail
+- Cames cannot clash - long and short names

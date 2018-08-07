@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 
 namespace LH.CommandLine.Options
@@ -8,13 +10,33 @@ namespace LH.CommandLine.Options
     {
         private readonly OptionAttribute _optionAttribute;
         private readonly ArgumentAttribute _argumentAttribute;
+        private readonly IReadOnlyList<SwitchAttribute> _switchAttributes;
 
-        internal OptionProperty(OptionAttribute optionAttribute, ArgumentAttribute argumentAttribute, PropertyInfo propertyInfo)
+        public static bool IsOptionProperty(PropertyInfo propertyInfo)
         {
-            _optionAttribute = optionAttribute;
-            _argumentAttribute = argumentAttribute;
+            return propertyInfo.GetCustomAttribute<OptionAttribute>() != null
+                   || propertyInfo.GetCustomAttribute<ArgumentAttribute>() != null
+                   || propertyInfo.GetCustomAttributes<SwitchAttribute>().Any();
+        }
 
+        internal OptionProperty(PropertyInfo propertyInfo)
+        {
+            _switchAttributes = propertyInfo.GetCustomAttributes<SwitchAttribute>().ToArray();
+            _optionAttribute = propertyInfo.GetCustomAttribute<OptionAttribute>();
+            _argumentAttribute = propertyInfo.GetCustomAttribute<ArgumentAttribute>();
+
+            if (_optionAttribute == null && _argumentAttribute == null && !_switchAttributes.Any())
+            {
+                throw new ArgumentException($"The property {propertyInfo.DeclaringType}.{propertyInfo.Name} cannot be used as OptionProperty, it doesn't have the Option or the Argument attribute.");
+            }
+
+            DefaultValue = GetDefaultValue(propertyInfo);
             PropertyInfo = propertyInfo;
+        }
+
+        public Type Type
+        {
+            get => PropertyInfo.PropertyType;
         }
 
         public bool IsPositional
@@ -24,34 +46,59 @@ namespace LH.CommandLine.Options
 
         public int PositionalIndex
         {
-            get => _argumentAttribute.Index;
+            get
+            {
+                if (!IsPositional)
+                {
+                    throw new InvalidOperationException("Cannot get PositionIndex of an OptionProperty which is not positional.");
+                }
+
+                return _argumentAttribute.Index;
+            }
         }
 
         public PropertyInfo PropertyInfo { get; }
 
-        public bool IsNamed
+        public bool IsOption
         {
             get => _optionAttribute != null;
         }
 
-        public IReadOnlyList<string> Aliases
+        public IReadOnlyList<string> OptionAliases
         {
-            get => _optionAttribute.Aliases;
+            get
+            {
+                if (!IsOption)
+                {
+                    throw new InvalidOperationException("Cannot get PositionIndex of an OptionProperty which is not positional.");
+                }
+
+                return _optionAttribute.Aliases;
+            }
         }
 
-        public string Name
+        public bool HasSwitches
         {
-            get => PropertyInfo.Name;
+            get => _switchAttributes != null && _switchAttributes.Any();
         }
 
-        public Type Type
+        public IReadOnlyList<ISwitch> Switches
         {
-            get => PropertyInfo.PropertyType;
+            get => _switchAttributes;
         }
 
-        public bool IsSwitch
+        public object DefaultValue { get; }
+
+        public bool HasDefaultValue
         {
-            get => Type == typeof(bool) && IsNamed;
+            get => DefaultValue != null;
+        }
+
+        private static object GetDefaultValue(PropertyInfo propertyInfo)
+        {
+            var attribute = propertyInfo.GetCustomAttribute<DefaultValueAttribute>();
+
+            return attribute?.Value;
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using LH.CommandLine.Options;
 using System.ComponentModel.DataAnnotations;
 using Xunit;
 
-namespace LH.CommandLine.FunctionalTests.OptionsParser
+namespace LH.CommandLine.UnitTests.OptionsParser
 {
     public class WhenValidatingOptions
     {
@@ -13,15 +13,6 @@ namespace LH.CommandLine.FunctionalTests.OptionsParser
             var options = parser.Parse(new[] { "--email", "some-value" });
 
             Assert.NotNull(options);
-        }
-
-        [Fact]
-        public void FailWhenOptionsAreInvalid()
-        {
-            var parser = new OptionsParser<ValidatedOptions>();
-
-            Assert.Throws<Exception>(
-                () => parser.Parse(new[] { "--email" }));
         }
 
         public class ValidatedOptions

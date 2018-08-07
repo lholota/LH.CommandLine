@@ -1,6 +1,8 @@
-﻿using Xunit;
+﻿using LH.CommandLine.Options;
+using System.ComponentModel;
+using Xunit;
 
-namespace LH.CommandLine.FunctionalTests.OptionsParser
+namespace LH.CommandLine.UnitTests.OptionsParser
 {
     public class WhenUsingDefaultValues
     {
@@ -16,6 +18,7 @@ namespace LH.CommandLine.FunctionalTests.OptionsParser
         }
 
         [Fact]
+        [DefaultValue(32)]
         public void ShouldReturnDefaultValue_WhenOptionNotSpecified()
         {
             var parser = new OptionsParser<OptionsWithDefaults>();
@@ -26,7 +29,8 @@ namespace LH.CommandLine.FunctionalTests.OptionsParser
 
         public class OptionsWithDefaults
         {
-            [Option("email", DefaultValue = DefaultValue)]
+            [Option("email")]
+            [DefaultValue(DefaultValue)]
             public string Email { get; set; }
         }
     }
