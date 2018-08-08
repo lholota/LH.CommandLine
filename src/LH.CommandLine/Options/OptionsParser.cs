@@ -9,16 +9,21 @@ namespace LH.CommandLine.Options
         private readonly OptionsValidator _optionsValidator;
         private readonly OptionPropertyCollection _optionPropertyCollection;
         private readonly OptionsBuilderFactory<TOptions> _builderFactory;
+        private readonly OptionsDefinitionValidator _optionsDefinitionValidator;
 
         public OptionsParser()
         {
             _builderFactory = new OptionsBuilderFactory<TOptions>();
             _optionPropertyCollection = new OptionPropertyCollection(typeof(TOptions));
+            _optionsDefinitionValidator = new OptionsDefinitionValidator(_optionPropertyCollection);
+
             _optionsValidator = new OptionsValidator();
         }
 
         public TOptions Parse(string[] args)
         {
+            _optionsDefinitionValidator.Validate();
+
             // TODO: Catch the exceptions with individual errors and throw a combined exception with all errors
 
             var optionBuilder = _builderFactory.CreateBuilder(_optionPropertyCollection);
