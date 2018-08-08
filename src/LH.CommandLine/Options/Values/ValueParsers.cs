@@ -7,7 +7,13 @@ namespace LH.CommandLine.Options.Values
     {
         private static readonly IDictionary<Type, IValueParser> Parsers = new Dictionary<Type, IValueParser>
         {
-            { typeof(string), new StringParser() }
+            { typeof(string), new StringParser() },
+            { typeof(short), new Int16Parser() },
+            { typeof(int), new Int32Parser() },
+            { typeof(long), new Int64Parser() },
+            { typeof(decimal), new DecimalParser() },
+            { typeof(float), new FloatParser() },
+            { typeof(double), new DoubleParser() }
         };
 
         public static IValueParser GetValueParser(Type targetType)

@@ -37,6 +37,11 @@ namespace LH.CommandLine.Options.Builders
             property.PropertyInfo.SetValue(_instance, value);
         }
 
+        public bool CanBuild()
+        {
+            return true;
+        }
+
         public TOptions Build()
         {
             return _instance;

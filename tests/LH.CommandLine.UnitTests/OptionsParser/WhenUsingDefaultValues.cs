@@ -1,4 +1,5 @@
-﻿using LH.CommandLine.Options;
+﻿using System;
+using LH.CommandLine.Options;
 using System.ComponentModel;
 using Xunit;
 
@@ -25,6 +26,22 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             var options = parser.Parse(new string[0]);
 
             Assert.Equal(DefaultValue, options.Email);
+        }
+
+        [Fact]
+        public void ShouldReturnDefaultValue_WhenDefaultValueIsOfAssignableType()
+        {
+            var parser = new OptionsParser<OptionsWithDerivedDefaultValue>();
+            var options = parser.Parse(new string[0]);
+
+            Assert.Equal(32, options.PropertyA);
+        }
+
+        private class OptionsWithDerivedDefaultValue
+        {
+            [DefaultValue(32)] // Int32
+            [Option("some-option")]
+            public IComparable PropertyA { get; set; }
         }
 
         public class OptionsWithDefaults

@@ -4,6 +4,8 @@
     {
         void SetValue(OptionProperty property, object value);
 
+        bool CanBuild();
+
         TOptions Build();
     }
 }

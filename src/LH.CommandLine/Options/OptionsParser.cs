@@ -15,7 +15,7 @@ namespace LH.CommandLine.Options
         {
             _builderFactory = new OptionsBuilderFactory<TOptions>();
             _optionPropertyCollection = new OptionPropertyCollection(typeof(TOptions));
-            _optionsDefinitionValidator = new OptionsDefinitionValidator(_optionPropertyCollection);
+            _optionsDefinitionValidator = new OptionsDefinitionValidator(typeof(TOptions), _optionPropertyCollection);
 
             _optionsValidator = new OptionsValidator();
         }
@@ -24,9 +24,8 @@ namespace LH.CommandLine.Options
         {
             _optionsDefinitionValidator.Validate();
 
-            // TODO: Catch the exceptions with individual errors and throw a combined exception with all errors
-
             var optionBuilder = _builderFactory.CreateBuilder(_optionPropertyCollection);
+            var errorsBuilder = new OptionsErrorsBuilder();
 
             SetDefaultValues(optionBuilder);
 
@@ -42,7 +41,7 @@ namespace LH.CommandLine.Options
 
                 if (_optionPropertyCollection.TryGetPropertyByIndex(i, out optionProperty))
                 {
-                    ParseAndSetValue(optionBuilder, optionProperty, args[i]);
+                    ParseAndSetValue(optionBuilder, errorsBuilder, optionProperty, args[i]);
                     continue;
                 }
 
@@ -50,27 +49,33 @@ namespace LH.CommandLine.Options
                 {
                     if (_optionPropertyCollection.TryGetPropertyByName(args[i], out optionProperty))
                     {
-                        ParseAndSetValue(optionBuilder, optionProperty, args[i+1]);
+                        ParseAndSetValue(optionBuilder, errorsBuilder, optionProperty, args[i+1]);
 
                         i++;
                         continue;
                     }
                 }
 
-                throw new Exception("The value .... is not a valid options or argument");
+                errorsBuilder.AddInvalidOptionError(args[i]);
             }
 
-            var options = optionBuilder.Build();
-
-            _optionsValidator.ValidateOptions(options);
-
-            return options;
+            return CreateOptionsOrThrow(optionBuilder, errorsBuilder);
         }
 
-        private void ParseAndSetValue(IOptionBuilder<TOptions> builder, OptionProperty property, string rawValue)
+        private void ParseAndSetValue(IOptionBuilder<TOptions> builder, OptionsErrorsBuilder errorsBuilder, OptionProperty property, string rawValue)
         {
             var parser = ValueParsers.GetValueParser(property.Type);
-            var parsedValue = parser.Parse(rawValue);
+            object parsedValue;
+
+            try
+            {
+                parsedValue = parser.Parse(rawValue);
+            }
+            catch (Exception)
+            {
+                errorsBuilder.AddInvalidValueError(property, rawValue);
+                return;
+            }
 
             builder.SetValue(property, parsedValue);
         }
@@ -84,6 +89,26 @@ namespace LH.CommandLine.Options
                     builder.SetValue(optionProperty, optionProperty.DefaultValue);
                 }
             }
+        }
+
+        private TOptions CreateOptionsOrThrow(IOptionBuilder<TOptions> optionBuilder, OptionsErrorsBuilder errorsBuilder)
+        {
+            if (errorsBuilder.HasErrors && !optionBuilder.CanBuild())
+            {
+                // Validation cannot be performed as the options cannot even be constructed
+                throw errorsBuilder.BuildException();
+            }
+
+            var options = optionBuilder.Build();
+
+            _optionsValidator.ValidateOptions(errorsBuilder, options);
+
+            if (errorsBuilder.HasErrors)
+            {
+                throw errorsBuilder.BuildException();
+            }
+
+            return options;
         }
     }
 }
