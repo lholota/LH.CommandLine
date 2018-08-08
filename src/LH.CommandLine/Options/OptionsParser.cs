@@ -8,14 +8,16 @@ namespace LH.CommandLine.Options
     {
         private readonly OptionsValidator _optionsValidator;
         private readonly OptionPropertyCollection _optionPropertyCollection;
-        private readonly OptionsBuilderFactory<TOptions> _builderFactory;
+        private readonly IOptionBuilder<TOptions> _optionsBuilder;
         private readonly OptionsDefinitionValidator _optionsDefinitionValidator;
 
         public OptionsParser()
         {
-            _builderFactory = new OptionsBuilderFactory<TOptions>();
             _optionPropertyCollection = new OptionPropertyCollection(typeof(TOptions));
             _optionsDefinitionValidator = new OptionsDefinitionValidator(typeof(TOptions), _optionPropertyCollection);
+
+            var builderFactory = new OptionsBuilderFactory<TOptions>();
+            _optionsBuilder = builderFactory.CreateBuilder(_optionPropertyCollection);
 
             _optionsValidator = new OptionsValidator();
         }
@@ -24,10 +26,10 @@ namespace LH.CommandLine.Options
         {
             _optionsDefinitionValidator.Validate();
 
-            var optionBuilder = _builderFactory.CreateBuilder(_optionPropertyCollection);
+            var optionValues = new OptionsValues();
             var errorsBuilder = new OptionsErrorsBuilder();
 
-            SetDefaultValues(optionBuilder);
+            SetDefaultValues(optionValues);
 
             for (var i = 0; i < args.Length; i++)
             {
@@ -35,13 +37,13 @@ namespace LH.CommandLine.Options
 
                 if (_optionPropertyCollection.TryGetSwitchPropertyByName(args[i], out optionProperty, out var switchValue))
                 {
-                    optionBuilder.SetValue(optionProperty, switchValue);
+                    optionValues.SetValue(optionProperty, switchValue);
                     continue;
                 }
 
                 if (_optionPropertyCollection.TryGetPropertyByIndex(i, out optionProperty))
                 {
-                    ParseAndSetValue(optionBuilder, errorsBuilder, optionProperty, args[i]);
+                    ParseAndSetValue(optionValues, errorsBuilder, optionProperty, args[i]);
                     continue;
                 }
 
@@ -49,7 +51,7 @@ namespace LH.CommandLine.Options
                 {
                     if (_optionPropertyCollection.TryGetPropertyByName(args[i], out optionProperty))
                     {
-                        ParseAndSetValue(optionBuilder, errorsBuilder, optionProperty, args[i+1]);
+                        ParseAndSetValue(optionValues, errorsBuilder, optionProperty, args[i+1]);
 
                         i++;
                         continue;
@@ -59,10 +61,10 @@ namespace LH.CommandLine.Options
                 errorsBuilder.AddInvalidOptionError(args[i]);
             }
 
-            return CreateOptionsOrThrow(optionBuilder, errorsBuilder);
+            return CreateOptionsOrThrow(optionValues, errorsBuilder);
         }
 
-        private void ParseAndSetValue(IOptionBuilder<TOptions> builder, OptionsErrorsBuilder errorsBuilder, OptionProperty property, string rawValue)
+        private void ParseAndSetValue(OptionsValues optionValues, OptionsErrorsBuilder errorsBuilder, OptionProperty property, string rawValue)
         {
             var parser = ValueParsers.GetValueParser(property.Type);
             object parsedValue;
@@ -77,29 +79,29 @@ namespace LH.CommandLine.Options
                 return;
             }
 
-            builder.SetValue(property, parsedValue);
+            optionValues.SetValue(property, parsedValue);
         }
 
-        private void SetDefaultValues(IOptionBuilder<TOptions> builder)
+        private void SetDefaultValues(OptionsValues optionValues)
         {
             foreach (var optionProperty in _optionPropertyCollection)
             {
                 if (optionProperty.HasDefaultValue)
                 {
-                    builder.SetValue(optionProperty, optionProperty.DefaultValue);
+                    optionValues.SetDefaultValue(optionProperty);
                 }
             }
         }
 
-        private TOptions CreateOptionsOrThrow(IOptionBuilder<TOptions> optionBuilder, OptionsErrorsBuilder errorsBuilder)
+        private TOptions CreateOptionsOrThrow(OptionsValues optionValues, OptionsErrorsBuilder errorsBuilder)
         {
-            if (errorsBuilder.HasErrors && !optionBuilder.CanBuild())
+            if (errorsBuilder.HasErrors && !_optionsBuilder.CanBuild())
             {
                 // Validation cannot be performed as the options cannot even be constructed
                 throw errorsBuilder.BuildException();
             }
 
-            var options = optionBuilder.Build();
+            var options = _optionsBuilder.Build();
 
             _optionsValidator.ValidateOptions(errorsBuilder, options);
 
