@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LH.CommandLine.Internal
+namespace LH.CommandLine.Executables
 {
     internal class CommandGroupDefinition : ICommandGroupBuilder, IExecutable
     {

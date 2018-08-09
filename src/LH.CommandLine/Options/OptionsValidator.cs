@@ -5,15 +5,17 @@ namespace LH.CommandLine.Options
 {
     internal class OptionsValidator
     {
-        public void ValidateOptions<TOptions>(OptionsErrorsBuilder errorsBuilder, TOptions options)
+        public IReadOnlyCollection<ValidationResult> ValidateOptions<TOptions>(TOptions options)
         {
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(options, null, null);
 
             if (!Validator.TryValidateObject(options, validationContext, validationResults, true))
             {
-                errorsBuilder.AddValidationErrors(validationResults);
+                return validationResults;
             }
+
+            return new ValidationResult[0];
         }
     }
 }

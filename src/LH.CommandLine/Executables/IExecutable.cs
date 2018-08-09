@@ -1,4 +1,4 @@
-﻿namespace LH.CommandLine.Internal
+﻿namespace LH.CommandLine.Executables
 {
     internal interface IExecutable
     {

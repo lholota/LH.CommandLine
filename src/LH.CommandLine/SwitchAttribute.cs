@@ -1,10 +1,9 @@
 ﻿using System;
-using LH.CommandLine.Options;
 
 namespace LH.CommandLine
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
-    public class SwitchAttribute : NamedAttribute, ISwitch
+    public class SwitchAttribute : NamedAttribute
     {
         public SwitchAttribute(char shortName) 
             : base(shortName)
@@ -25,11 +24,6 @@ namespace LH.CommandLine
         }
 
         public object Value { get; set; }
-
-        string[] ISwitch.Aliases
-        {
-            get => Aliases;
-        }
 
         private void SetDefaults()
         {

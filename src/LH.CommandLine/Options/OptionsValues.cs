@@ -1,47 +1,68 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
 
 namespace LH.CommandLine.Options
 {
-    internal class OptionsValues
+    internal class OptionsValues : IReadOnlyCollection<PropertyValue>
     {
         private readonly IDictionary<PropertyInfo, OptionValue> _values;
 
-        public OptionsValues()
+        public OptionsValues(OptionsTypeDescriptor typeDescriptor)
         {
-            _values = new Dictionary<PropertyInfo, OptionValue>();
+            _values = CreateInitialValues(typeDescriptor);
         }
 
-        public void SetValue(OptionProperty property, object value)
+        public int Count
         {
-            VerifyCanSetValue(property);
-
-            _values[property.PropertyInfo] = new OptionValue(value, false);
+            get => _values.Count;
         }
 
-        public void SetDefaultValue(OptionProperty property)
+        public void SetValue(PropertyValue propertyValue)
         {
-            if (!property.HasDefaultValue)
+            SetValue(propertyValue.PropertyInfo, propertyValue.Value);
+        }
+
+        public void SetValue(PropertyInfo propertyInfo, object value)
+        {
+            if (IsValueAlreadySet(propertyInfo))
             {
-                throw new InvalidOperationException("Cannot set default value on an OptionProperty which doesn't have a default value.");
+                throw new DuplicateValueException(propertyInfo.Name);
             }
 
-            VerifyCanSetValue(property);
-
-            _values[property.PropertyInfo] = new OptionValue(property.DefaultValue, true);
+            _values[propertyInfo] = new OptionValue(value, false);
         }
 
-        private void VerifyCanSetValue(OptionProperty property)
+        public IEnumerator<PropertyValue> GetEnumerator()
         {
-            if (_values.TryGetValue(property.PropertyInfo, out var value))
+            return _values.Select(x => new PropertyValue(x.Key, x.Value?.Value)).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private IDictionary<PropertyInfo, OptionValue> CreateInitialValues(OptionsTypeDescriptor typeDescriptor)
+        {
+            var values = typeDescriptor.Properties
+                .ToDictionary(x => x, x => (OptionValue)null);
+
+            foreach (var defaultValue in typeDescriptor.DefaultValues)
             {
-                if (!value.IsDefault)
-                {
-                    throw new DuplicateValueException(property.PropertyInfo.Name);
-                }
+                values[defaultValue.PropertyInfo] = new OptionValue(defaultValue.Value, true);
             }
+
+            return values;
+        }
+
+        private bool IsValueAlreadySet(PropertyInfo propertyInfo)
+        {
+            return _values.TryGetValue(propertyInfo, out var existingValue)
+                && existingValue != null
+                && !existingValue.IsDefault;
         }
 
         private class OptionValue

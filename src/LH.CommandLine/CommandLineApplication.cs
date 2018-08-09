@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using LH.CommandLine.Internal;
+using LH.CommandLine.Executables;
 
 namespace LH.CommandLine
 {
