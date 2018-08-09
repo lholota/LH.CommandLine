@@ -1,0 +1,24 @@
+version: 0.1.{build}
+skip_branch_with_pr: true
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+build:
+  project: LH.CommandLine.sln
+  publish_nuget: true
+  verbosity: minimal
+artifacts:
+- path: '**\*.nuget'
+  name: Packages
+deploy:
+- provider: NuGet
+  api_key:
+    secure: 2p0o5Ldmx/dlGP3VMYSImxiAWU5JjYt8d1PUsfdqhWUuEURIt+78CrCOvVWfsB/f
+  skip_symbols: false
+  on:
+    branch: master
