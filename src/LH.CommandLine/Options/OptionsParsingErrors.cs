@@ -35,6 +35,11 @@ namespace LH.CommandLine.Options
             _errors.Add($"The value '{rawValue}' is not valid for the option of type {property.PropertyType}.");
         }
 
+        public void AddSpecifiedMultipleTimesError(PropertyInfo propertyInfo)
+        {
+            _errors.Add($"The value for the property {propertyInfo.Name} has been specified multiple times.");
+        }
+
         public void AddValidationErrors(IEnumerable<ValidationResult> validationResults)
         {
             var errorMessages = validationResults.Select(x => x.ErrorMessage);

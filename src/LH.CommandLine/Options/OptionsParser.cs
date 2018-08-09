@@ -85,7 +85,14 @@ namespace LH.CommandLine.Options
                 return;
             }
 
-            values.SetValue(propertyInfo, parsedValue);
+            try
+            {
+                values.SetValue(propertyInfo, parsedValue);
+            }
+            catch (DuplicateValueException)
+            {
+                errors.AddSpecifiedMultipleTimesError(propertyInfo);
+            }
         }
     }
 }
