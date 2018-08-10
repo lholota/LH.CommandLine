@@ -23,8 +23,8 @@ build_script:
 - ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
 #- coverlet .\tests\LH.CommandLine.UnitTests\bin\Debug\netcoreapp2.0\LH.CommandLine.dll --target "dotnet" --targetargs "test .\tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj --no-build" --format opencover --output ".\LH.CommandLine.UnitTests.xml"
-- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput='%APPVEYOR_BUILD_FOLDER%\LH.CommandLine.UnitTests.xml' /p:Exclude="[*Tests?]*"
-- codecov -f %APPVEYOR_BUILD_FOLDER%\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
+- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput='./Coverage.xml' /p:Exclude='[*Tests?]*'
+- codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
   name: Packages
