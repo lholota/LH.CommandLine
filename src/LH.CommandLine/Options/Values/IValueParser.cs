@@ -1,7 +1,9 @@
-﻿namespace LH.CommandLine.Options.Values
+﻿using System;
+
+namespace LH.CommandLine.Options.Values
 {
     internal interface IValueParser
     {
-        object Parse(string rawValue);
+        object Parse(string rawValue, Type targetType);
     }
 }

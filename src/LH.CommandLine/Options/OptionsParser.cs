@@ -8,6 +8,7 @@ using LH.CommandLine.Options.Values;
 namespace LH.CommandLine.Options
 {
     public class OptionsParser<TOptions>
+        where TOptions: class
     {
         private readonly OptionsValidator _optionsValidator;
         private readonly OptionsTypeDescriptor _typeDescriptor;
@@ -77,7 +78,7 @@ namespace LH.CommandLine.Options
 
             try
             {
-                parsedValue = parser.Parse(rawValue);
+                parsedValue = parser.Parse(rawValue, propertyInfo.PropertyType);
             }
             catch (Exception)
             {

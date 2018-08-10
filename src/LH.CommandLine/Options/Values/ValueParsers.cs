@@ -5,6 +5,8 @@ namespace LH.CommandLine.Options.Values
 {
     internal static class ValueParsers
     {
+        private static readonly EnumParser EnumParser = new EnumParser();
+
         private static readonly IDictionary<Type, IValueParser> Parsers = new Dictionary<Type, IValueParser>
         {
             { typeof(string), new StringParser() },
@@ -18,6 +20,11 @@ namespace LH.CommandLine.Options.Values
 
         public static IValueParser GetValueParser(Type targetType)
         {
+            if (targetType.IsEnum)
+            {
+                return EnumParser;
+            }
+
             if (!Parsers.TryGetValue(targetType, out var parser))
             {
                 throw new NotSupportedException($"Options/Arguments of type {targetType} are not supported.");
