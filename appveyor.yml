@@ -1,8 +1,8 @@
 version: 0.1.{build}
 image: Visual Studio 2017
 skip_branch_with_pr: true
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -16,14 +16,16 @@ environment:
   CODECOV_TOKEN:
     secure: 4MD/Ln1SJkDA5CbnfQo3ltc1GcL4+WpdKyXj0dD9fi6VcJQ8a6Gih66kHsiYsbKT
 before_build:
-- choco install opencover.portable
-- choco install codecov
+#- choco install opencover.portable
+#- choco install codecov
+- dotnet tool install --global coverlet.console
 build_script:
 - ps: . dotnet build LH.CommandLine.sln -c "Debug"
 - ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test -c Debug --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -output:".\LH.CommandLine.UnitTests.xml" -oldStyle
+- coverlet .\tests\LH.CommandLine.UnitTests\bin\Debug\netcoreapp2.0\LH.CommandLine.dll --target "dotnet" --targetargs "test .\tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj --no-build"
 - codecov -f .\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
+#- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test -c Debug --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -output:".\LH.CommandLine.UnitTests.xml" -oldStyle
 artifacts:
 - path: '**\*.nupkg'
   name: Packages
