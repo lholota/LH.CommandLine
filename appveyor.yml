@@ -19,11 +19,11 @@ environment:
 before_build:
 - choco install codecov
 build_script:
-- ps: . dotnet build LH.CommandLine.sln -c $env:CONFIGURATION
-- ps: . dotnet pack src\LH.CommandLine -c $env:CONFIGURATION /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
+- dotnet build LH.CommandLine.sln -c $(CONFIGURATION)
+- dotnet pack src\LH.CommandLine -c $(CONFIGURATION) /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- ps: . dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $env:CONFIGURATION /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
-- ps: . codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $env:CODECOV_TOKEN
+- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $(CONFIGURATION) /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
+- codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
   name: Packages
