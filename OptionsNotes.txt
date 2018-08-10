@@ -1,23 +1,10 @@
 Functional tests
 =======================
-- Parse named options
 - Parse positional arguments
-- Parse a switch
 - Parse errors
 	- Value cannot be parsed (e.g. 'aaa' as number)
 	- Option is specified without a value, the parser should not swallow the next value (?)
 	- Option specified multiple times (e.g. once with short name and once with long name)
 - Mixture of all
-+ Default values
-+ Validation
-	+ Valid & invalid
-	+ Missing required options
 
 Unit tests
-========================
-- Builder factory
-- Builders
-- Parser
-	- Specific exceptions should be throw
-- Value parsers
-	- Try to get parser for invalid type
