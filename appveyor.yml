@@ -19,7 +19,7 @@ build_script:
 - ps: . dotnet build LH.CommandLine.sln -c "Debug"
 - ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -filter:"+[LH.CommandLine*]* -[LH.CommandLine.UnitTests*]*" -output:".\LH.CommandLine.UnitTests.xml"
+- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -output:".\LH.CommandLine.UnitTests.xml"
 - codecov -f .\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
