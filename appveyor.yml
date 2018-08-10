@@ -22,8 +22,8 @@ build_script:
 - ps: . dotnet build LH.CommandLine.sln -c $env:CONFIGURATION
 - ps: . dotnet pack src\LH.CommandLine -c $env:CONFIGURATION /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $env:CONFIGURATION /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
-- codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
+- ps: . dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $env:CONFIGURATION /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
+- ps: . codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
   name: Packages
