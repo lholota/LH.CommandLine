@@ -16,9 +16,8 @@ before_build:
 - choco install opencover.portable
 - choco install codecov
 build_script:
-- ps: >-
-    & dotnet build LH.CommandLine.sln -c "Release"
-    & dotnet pack src\LH.CommandLine -c "Release" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
+- ps: . dotnet build LH.CommandLine.sln -c "Release"
+- ps: . dotnet pack src\LH.CommandLine -c "Release" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
 - OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -filter:"+[LH.CommandLine*]* -[LH.CommandLine.UnitTests*]*" -output:".\LH.CommandLine.UnitTests.xml"
 - codecov -f .\valit_coverage.xml -t $(CODECOV_TOKEN)
