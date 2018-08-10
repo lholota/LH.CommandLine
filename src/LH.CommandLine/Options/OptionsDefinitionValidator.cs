@@ -17,9 +17,10 @@ namespace LH.CommandLine.Options
         {
             var errors = new List<string>();
 
-            CheckNamesAreUnique(errors);
-            CheckDefaultValueTypes(errors);
-            CheckSwitchValueTypes(errors);
+            errors.AddRange(ValidateNamesAreUnique());
+            errors.AddRange(CheckDefaultValueTypes());
+            errors.AddRange(CheckSwitchValueTypes());
+            errors.AddRange(CheckPositionalIndexes());
 
             if (errors.Count > 0)
             {
@@ -27,7 +28,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private void CheckNamesAreUnique(IList<string> errors)
+        private IEnumerable<string> ValidateNamesAreUnique()
         {
             var groupedAliases = _typeDescriptor
                 .GetAliases()
@@ -37,23 +38,23 @@ namespace LH.CommandLine.Options
             {
                 if (group.Count() > 1)
                 {
-                    errors.Add($"The alias '{group.Key}' is used for more than one Option or Switch.");
+                    yield return $"The alias '{group.Key}' is used for more than one Option or Switch.";
                 }
             }
         }
 
-        private void CheckDefaultValueTypes(IList<string> errors)
+        private IEnumerable<string> CheckDefaultValueTypes()
         {
             foreach (var defaultValue in _typeDescriptor.DefaultValues)
             {
                 if (!defaultValue.IsValid())
                 {
-                    errors.Add($"The default value of type {defaultValue.ValueType} cannot be assigned to property of type {defaultValue.PropertyType} (property name {defaultValue.PropertyName})");
+                    yield return $"The default value of type {defaultValue.ValueType} cannot be assigned to property of type {defaultValue.PropertyType} (property name {defaultValue.PropertyName})";
                 }
             }
         }
 
-        private void CheckSwitchValueTypes(IList<string> errors)
+        private IEnumerable<string> CheckSwitchValueTypes()
         {
             var switchValues = _typeDescriptor.GetSwitchValues();
 
@@ -61,7 +62,34 @@ namespace LH.CommandLine.Options
             {
                 if (!switchValue.IsValid())
                 {
-                    errors.Add($"The switch value of type {switchValue.ValueType} cannot be assigned to property of type {switchValue.PropertyType} (property name {switchValue.PropertyName})");
+                    yield return $"The switch value of type {switchValue.ValueType} cannot be assigned to property of type {switchValue.PropertyType} (property name {switchValue.PropertyName})";
+                }
+            }
+        }
+
+        private IEnumerable<string> CheckPositionalIndexes()
+        {
+            var indexes = _typeDescriptor.GetPositionalIndexes()
+                .OrderBy(x => x)
+                .ToArray();
+
+            if (indexes.Length == 0)
+            {
+                yield break;
+            }
+
+            for (var i = 0; i < indexes.Length; i++)
+            {
+                if (indexes[i] != i)
+                {
+                    if (i == 0)
+                    {
+                        yield return "The argument indexes must start with 0.";
+                    }
+                    else
+                    {
+                        yield return $"The argument indexes must be continous. There is no argument with index {i}.";
+                    }
                 }
             }
         }

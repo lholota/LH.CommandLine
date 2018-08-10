@@ -39,6 +39,20 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
+        [Fact]
+        public void ShouldThrowWhenPositionalArgsIndexDontStartWithZero()
+        {
+            var parser = new OptionsParser<OptionsWithNonZeroPositionalArgs>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
+        [Fact]
+        public void ShouldThrowWhenPositionalArgsIndexesAreNotContinous()
+        {
+            var parser = new OptionsParser<OptionsWithNonContinousPositionalIndexes>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
         private class OptionsWithInvalidDefaultValue
         {
             [DefaultValue(true)]
@@ -68,6 +82,25 @@ namespace LH.CommandLine.UnitTests.OptionsParser
 
             [Switch("some-option")]
             public string PropertyB { get; set; }
+        }
+
+        private class OptionsWithNonZeroPositionalArgs
+        {
+            [Argument(1)]
+            public string SomeArg { get; set; }
+        }
+
+        private class OptionsWithNonContinousPositionalIndexes
+
+        {
+            [Argument(0)]
+            public string SomeArg0 { get; set; }
+
+            [Argument(1)]
+            public string SomeArg1 { get; set; }
+
+            [Argument(5)]
+            public string SomeArg5 { get; set; }
         }
     }
 }

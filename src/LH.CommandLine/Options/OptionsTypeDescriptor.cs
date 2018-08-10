@@ -50,6 +50,11 @@ namespace LH.CommandLine.Options
             return _switchValues.Keys.Concat(_namedOptionPropertiesLookup.Keys);
         }
 
+        public IEnumerable<int> GetPositionalIndexes()
+        {
+            return _positionalProperties.Keys;
+        }
+
         public IEnumerable<PropertyValue> GetSwitchValues()
         {
             return _switchValues.Select(x => x.Value);
