@@ -1,5 +1,7 @@
 version: 0.1.{build}
 skip_branch_with_pr: true
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -19,7 +21,7 @@ build_script:
 - ps: . dotnet build LH.CommandLine.sln -c "Debug"
 - ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -output:".\LH.CommandLine.UnitTests.xml" -oldStyle
+- OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test -c Debug --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -output:".\LH.CommandLine.UnitTests.xml" -oldStyle
 - codecov -f .\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
