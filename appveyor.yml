@@ -1,4 +1,5 @@
 version: 0.1.{build}
+version: 0.1.{build}
 image: Visual Studio 2017
 skip_branch_with_pr: true
 #on_finish:
@@ -13,17 +14,16 @@ dotnet_csproj:
   informational_version: $(FULL_VERSION)
 environment:
   FULL_VERSION: $(APPVEYOR_BUILD_VERSION)-alpha
+  CONFIGURATION: Release
   CODECOV_TOKEN:
     secure: 4MD/Ln1SJkDA5CbnfQo3ltc1GcL4+WpdKyXj0dD9fi6VcJQ8a6Gih66kHsiYsbKT
 before_build:
 - choco install codecov
-#- dotnet tool install --global coverlet.console
 build_script:
-- ps: . dotnet build LH.CommandLine.sln -c "Debug"
-- ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
+- ps: . dotnet build LH.CommandLine.sln -c $env:CONFIGURATION
+- ps: . dotnet pack src\LH.CommandLine -c $env:CONFIGURATION /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-#- coverlet .\tests\LH.CommandLine.UnitTests\bin\Debug\netcoreapp2.0\LH.CommandLine.dll --target "dotnet" --targetargs "test .\tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj --no-build" --format opencover --output ".\LH.CommandLine.UnitTests.xml"
-- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
+- dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $env:CONFIGURATION /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
 - codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
