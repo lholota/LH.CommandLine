@@ -22,7 +22,7 @@ build_script:
 - ps: . dotnet build LH.CommandLine.sln -c "Debug"
 - ps: . dotnet pack src\LH.CommandLine -c "Debug" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
-- coverlet .\tests\LH.CommandLine.UnitTests\bin\Debug\netcoreapp2.0\LH.CommandLine.dll --target "dotnet" --targetargs "test .\tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj --no-build" --format opencover --output ".\LH.CommandLine.UnitTests.xml" --exclude "[LH.*.*Tests?]*"
+- coverlet .\tests\LH.CommandLine.UnitTests\bin\Debug\netcoreapp2.0\LH.CommandLine.dll --target "dotnet" --targetargs "test .\tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj --no-build" --format opencover --output ".\LH.CommandLine.UnitTests.xml"
 - codecov -f .\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
