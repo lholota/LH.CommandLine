@@ -20,7 +20,7 @@ build_script:
 - ps: . dotnet pack src\LH.CommandLine -c "Release" /p:PackageVersion=$env:FULL_VERSION --no-build --no-restore
 test_script:
 - OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full tests\LH.CommandLine.UnitTests\LH.CommandLine.UnitTests.csproj" -filter:"+[LH.CommandLine*]* -[LH.CommandLine.UnitTests*]*" -output:".\LH.CommandLine.UnitTests.xml"
-- codecov -f .\valit_coverage.xml -t $(CODECOV_TOKEN)
+- codecov -f .\LH.CommandLine.UnitTests.xml -t $(CODECOV_TOKEN)
 artifacts:
 - path: '**\*.nupkg'
   name: Packages
