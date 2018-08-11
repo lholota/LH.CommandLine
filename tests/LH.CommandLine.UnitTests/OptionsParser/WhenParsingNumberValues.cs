@@ -25,7 +25,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
                 () => parser.Parse(new[] { "--value", "32ab" }));
         }
 
-
         [Fact]
         public void ShouldParseShortValue()
         {
