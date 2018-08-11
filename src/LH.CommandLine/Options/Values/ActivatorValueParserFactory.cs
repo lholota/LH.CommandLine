@@ -4,14 +4,9 @@ namespace LH.CommandLine.Options.Values
 {
     internal class ActivatorValueParserFactory : IValueParserFactory
     {
-        public bool CanCreateParser(Type parserType)
+        public T CreateParser<T>()
         {
-            return parserType.GetConstructor(new Type[0]) != null;
-        }
-
-        public IValueParser CreateParser(Type parserType)
-        {
-            return (IValueParser)Activator.CreateInstance(parserType);
+            return Activator.CreateInstance<T>();
         }
     }
 }

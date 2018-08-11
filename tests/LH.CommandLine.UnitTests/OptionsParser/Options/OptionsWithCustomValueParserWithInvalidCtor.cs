@@ -10,13 +10,13 @@ namespace LH.CommandLine.UnitTests.OptionsParser.Options
         [ValueParser(typeof(InvalidValueParser))]
         public string Options { get; set; }
 
-        public class InvalidValueParser : IValueParser<string>
+        public class InvalidValueParser : ValueParserBase<string>
         {
             public InvalidValueParser(string someMagic)
             {                
             }
 
-            public string Parse(string rawValue)
+            public override string Parse(string rawValue)
             {
                 throw new NotImplementedException();
             }

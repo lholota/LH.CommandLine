@@ -1,4 +1,5 @@
 ﻿using System;
+using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options;
 using LH.CommandLine.Options.Values;
 using LH.CommandLine.UnitTests.OptionsParser.Options;
@@ -15,30 +16,24 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             var exception = new Exception();
 
             var factoryMock = new Mock<IValueParserFactory>();
-            factoryMock
-                .Setup(x => x.CanCreateParser(It.IsAny<Type>()))
-                .Returns(true);
 
             factoryMock
-                .Setup(x => x.CreateParser(typeof(OptionsWithCustomParser.CustomParser)))
+                .Setup(x => x.CreateParser<OptionsWithCustomParser.CustomParser>())
                 .Throws(exception);
 
             var parser = new OptionsParser<OptionsWithCustomParser>(factoryMock.Object);
-            var actualException = Assert.Throws<Exception>(() => parser.Parse(new[] {"--string-option", "some-value"}));
 
-            Assert.Equal(exception, actualException);
+            Assert.Throws<CreatingValueParserFailedException>(
+                () => parser.Parse(new[] {"--string-option", "some-value"}));
         }
 
         [Fact]
         public void ShouldUseValueParserCreatedByFactory()
         {
             var factoryMock = new Mock<IValueParserFactory>();
-            factoryMock
-                .Setup(x => x.CanCreateParser(It.IsAny<Type>()))
-                .Returns(true);
 
             factoryMock
-                .Setup(x => x.CreateParser(typeof(OptionsWithCustomParser.CustomParser)))
+                .Setup(x => x.CreateParser<OptionsWithCustomParser.CustomParser>())
                 .Returns(new OptionsWithCustomParser.CustomParser("OtherCustomValue"));
 
             var parser = new OptionsParser<OptionsWithCustomParser>(factoryMock.Object);

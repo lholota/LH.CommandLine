@@ -8,14 +8,11 @@ namespace LH.CommandLine.Options
     internal class OptionsDefinitionValidator
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
-        private readonly IValueParserFactory _valueParserFactory;
 
         public OptionsDefinitionValidator(
-            OptionsTypeDescriptor typeDescriptor, 
-            IValueParserFactory valueParserFactory)
+            OptionsTypeDescriptor typeDescriptor)
         {
             _typeDescriptor = typeDescriptor;
-            _valueParserFactory = valueParserFactory;
         }
 
         public void Validate()
@@ -106,17 +103,12 @@ namespace LH.CommandLine.Options
 
             foreach (var parserType in _typeDescriptor.GetValueParserOverrideTypes())
             {
-                if (!_valueParserFactory.CanCreateParser(parserType))
+                if (!parserType.IsSubclassOf(typeof(ValueParserBase<>)))
                 {
-                    if (_valueParserFactory is ActivatorValueParserFactory)
-                    {
-                        yield return $"The default ValueParserFactory cannot create an instance of {parserType}. Only types with parameterless constructors are supported. Pass your own factory to the OptionsParser.";
-                    }
-                    else
-                    {
-                        yield return $"The value parse factory {_valueParserFactory.GetType()} cannot create an instance of {parserType}.";
-                    }
+                    // TODO: Error
                 }
+
+                // TODO: Find the parser generic parameter and compare it with the property type
 
                 if (!valueParserInterface.IsAssignableFrom(parserType))
                 {

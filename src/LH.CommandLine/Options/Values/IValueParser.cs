@@ -7,8 +7,18 @@ namespace LH.CommandLine.Options.Values
         object Parse(string rawValue, Type targetType);
     }
 
-    public interface IValueParser<out T>
+    //public interface IValueParser<out T>
+    //{
+    //    T Parse(string rawValue);
+    //}
+
+    public abstract class ValueParserBase<T> : IValueParser
     {
-        T Parse(string rawValue);
+        object IValueParser.Parse(string rawValue, Type targetType)
+        {
+            return Parse(rawValue);
+        }
+
+        public abstract T Parse(string rawValue);
     }
 }

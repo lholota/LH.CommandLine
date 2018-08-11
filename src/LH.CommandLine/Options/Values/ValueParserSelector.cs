@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Reflection;
+using LH.CommandLine.Exceptions;
 
 namespace LH.CommandLine.Options.Values
 {
-    internal class InternalValueParserSelector
+    internal class ValueParserSelector
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly IValueParserFactory _valueParserFactory;
 
-        public InternalValueParserSelector(
+        public ValueParserSelector(
             OptionsTypeDescriptor typeDescriptor,
             IValueParserFactory valueParserFactory)
         {
@@ -31,9 +32,20 @@ namespace LH.CommandLine.Options.Values
             return DefaultParsers.GetValueParser(propertyInfo.PropertyType);
         }
 
-        private IValueParser CreateExternalParser(Type type)
+        private IValueParser CreateExternalParser(Type parserType)
         {
-            
+            var factoryType = _valueParserFactory.GetType();
+            var method = factoryType.GetMethod(nameof(IValueParserFactory.CreateParser));
+            var generic = method.MakeGenericMethod(parserType);
+
+            try
+            {
+                return (IValueParser)generic.Invoke(_valueParserFactory, null);
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw new CreatingValueParserFailedException(factoryType, parserType, ex);
+            }
         }
     }
 }

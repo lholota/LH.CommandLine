@@ -1,5 +1,4 @@
-﻿using System;
-using LH.CommandLine.Options;
+﻿using LH.CommandLine.Options;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.UnitTests.OptionsParser.Options
@@ -10,7 +9,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser.Options
         [ValueParser(typeof(CustomParser))]
         public string StringOption { get; set; }
 
-        public class CustomParser : IValueParser<string>
+        public class CustomParser : ValueParserBase<string>
         {
             private readonly string _value;
 
@@ -24,7 +23,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser.Options
                 _value = value;
             }
 
-            public string Parse(string rawValue)
+            public override string Parse(string rawValue)
             {
                 return _value;
             }
