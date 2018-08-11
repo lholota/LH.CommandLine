@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.Values
+namespace LH.CommandLine.Options.BuiltinParsers
 {
     internal class EnumParser : IValueParser
     {
@@ -30,7 +31,7 @@ namespace LH.CommandLine.Options.Values
         private bool TryParseUnderlyingTypeValue(string rawValue, Type targetType, out object parsedValue)
         {
             var underlyingType = targetType.GetEnumUnderlyingType();
-            var underlyingTypeParser = ValueParsers.GetValueParser(underlyingType);
+            var underlyingTypeParser = DefaultParsers.GetValueParser(underlyingType);
 
             try
             {

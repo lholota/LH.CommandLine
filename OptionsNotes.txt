@@ -7,4 +7,22 @@ Functional tests
 	- Option specified multiple times (e.g. once with short name and once with long name)
 - Mixture of all
 
-Unit tests
+Custom parsers
+=======================
+- Factoring - later using DI container etc.
+- Internal parsers -> predefined instances
+
+- OptionsTypeDescriptor
+	- TryFind positional and named should return PropertyInfo and IValueParser
+
+- Descriptor returns the parser type
+	- Either property has an attribute
+	- Or return something from the default parsers (rename the class)
+
+- IValueParserFactory
+	- CanCreateParser(Type type): bool -> Use when validating options
+	- CreateParser(Type type): IValueParser -> Use when parsing options
+
+
+- IValueParser, IValueParser<TResult> -> wrap the custom parser in internal parser
+-> Validate the generic type against the type of the property

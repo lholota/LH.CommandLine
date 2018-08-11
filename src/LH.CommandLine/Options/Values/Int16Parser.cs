@@ -1,6 +1,7 @@
 ﻿using System;
+using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.Values
+namespace LH.CommandLine.Options.BuiltinParsers
 {
     public class Int16Parser : IValueParser
     {

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Options.BuiltinParsers;
 using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Values;
 
@@ -14,13 +15,21 @@ namespace LH.CommandLine.Options
         private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly OptionsFactory<TOptions> _optionsFactory;
         private readonly OptionsDefinitionValidator _optionsDefinitionValidator;
+        private readonly IValueParserFactory _valueParserFactory;
 
-        public OptionsParser()
+        public OptionsParser(IValueParserFactory valueParserFactory)
         {
             _typeDescriptor = new OptionsTypeDescriptor(typeof(TOptions));
             _optionsFactory = new OptionsFactory<TOptions>(_typeDescriptor);
             _optionsValidator = new OptionsValidator();
-            _optionsDefinitionValidator = new OptionsDefinitionValidator(_typeDescriptor);
+            _optionsDefinitionValidator = new OptionsDefinitionValidator(_typeDescriptor, valueParserFactory);
+
+            _valueParserFactory = valueParserFactory;
+        }
+
+        public OptionsParser()
+            : this(new ActivatorValueParserFactory())
+        {
         }
 
         public TOptions Parse(string[] args)
@@ -73,8 +82,9 @@ namespace LH.CommandLine.Options
 
         private void ParseAndSetValue(OptionsParsingErrors errors, OptionsValues values, PropertyInfo propertyInfo, string rawValue)
         {
-            var parser = ValueParsers.GetValueParser(propertyInfo.PropertyType);
             object parsedValue;
+
+            var parser = GetValueParser(propertyInfo);
 
             try
             {
@@ -94,6 +104,22 @@ namespace LH.CommandLine.Options
             {
                 errors.AddSpecifiedMultipleTimesError(propertyInfo);
             }
+        }
+
+        private IValueParser GetValueParser(PropertyInfo propertyInfo)
+        {
+            IValueParser parser;
+
+            if (_typeDescriptor.TryFindValueParserOverrideType(propertyInfo, out var parserType))
+            {
+                parser = _valueParserFactory.CreateParser(parserType);
+            }
+            else
+            {
+                parser = DefaultParsers.GetValueParser(propertyInfo.PropertyType);
+            }
+
+            return parser;
         }
     }
 }

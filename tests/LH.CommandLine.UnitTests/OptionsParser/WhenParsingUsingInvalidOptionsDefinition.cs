@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
-using LH.CommandLine.Options;
+﻿using LH.CommandLine.Options;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
@@ -18,7 +18,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenMultipleOptionAndSwitchHaveSameName()
         {
-            var parser = new OptionsParser<OptionsWithSwitchSharingNameWithOption>();
+            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithSwitchSharingNameWithNamedOption>();
 
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
@@ -26,7 +26,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenDefaultValueIsOfDifferentTypeThanProperty()
         {
-            var parser = new OptionsParser<OptionsWithInvalidDefaultValue>();
+            var parser = new OptionsParser<OptionsWithInvalidDefaultValueType>();
 
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
@@ -42,7 +42,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenPositionalArgsIndexDontStartWithZero()
         {
-            var parser = new OptionsParser<OptionsWithNonZeroPositionalArgs>();
+            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithOnlyNonZeroPositionalArgs>();
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
@@ -53,12 +53,20 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
-        private class OptionsWithInvalidDefaultValue
+        [Fact]
+        public void ShouldThrowWhenCustomValueParserCannotBeCreated()
         {
-            [DefaultValue(true)]
-            [Option("some-option")]
-            public string PropertyA { get; set; }
+            var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidCtor>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
+
+        [Fact]
+        public void ShouldThrowWhenCustomValueParserDoesNotImplementInterface()
+        {
+            var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidInterface>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
 
         private class OptionsWithInvalidSwitchValue
         {
@@ -73,21 +81,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
 
             [Switch("some-option")]
             public string PropertyB { get; set; }
-        }
-
-        private class OptionsWithSwitchSharingNameWithOption
-        {
-            [Option("some-option")]
-            public string PropertyA { get; set; }
-
-            [Switch("some-option")]
-            public string PropertyB { get; set; }
-        }
-
-        private class OptionsWithNonZeroPositionalArgs
-        {
-            [Argument(1)]
-            public string SomeArg { get; set; }
         }
 
         private class OptionsWithNonContinousPositionalIndexes

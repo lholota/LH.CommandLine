@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using LH.CommandLine.Options.BuiltinParsers;
 
 namespace LH.CommandLine.Options.Values
 {
-    internal static class ValueParsers
+    internal static class DefaultParsers
     {
         private static readonly EnumParser EnumParser = new EnumParser();
 
@@ -18,7 +19,7 @@ namespace LH.CommandLine.Options.Values
             { typeof(float), new FloatParser() },
             { typeof(double), new DoubleParser() },
             { typeof(bool), new BoolParser() },
-            {typeof(byte[]), new ByteArrayParser() }
+            { typeof(byte[]), new Base64ByteArrayParser() }
         };
 
         public static IValueParser GetValueParser(Type targetType)

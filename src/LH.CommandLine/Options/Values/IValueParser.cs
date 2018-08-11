@@ -6,4 +6,9 @@ namespace LH.CommandLine.Options.Values
     {
         object Parse(string rawValue, Type targetType);
     }
+
+    public interface IValueParser<out T>
+    {
+        T Parse(string rawValue);
+    }
 }

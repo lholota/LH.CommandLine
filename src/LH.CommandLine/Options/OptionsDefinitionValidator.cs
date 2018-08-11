@@ -1,16 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
 {
     internal class OptionsDefinitionValidator
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
+        private readonly IValueParserFactory _valueParserFactory;
 
-        public OptionsDefinitionValidator(OptionsTypeDescriptor typeDescriptor)
+        public OptionsDefinitionValidator(
+            OptionsTypeDescriptor typeDescriptor, 
+            IValueParserFactory valueParserFactory)
         {
             _typeDescriptor = typeDescriptor;
+            _valueParserFactory = valueParserFactory;
         }
 
         public void Validate()
@@ -18,9 +23,10 @@ namespace LH.CommandLine.Options
             var errors = new List<string>();
 
             errors.AddRange(ValidateNamesAreUnique());
-            errors.AddRange(CheckDefaultValueTypes());
-            errors.AddRange(CheckSwitchValueTypes());
+            errors.AddRange(ValidateDefaultValueTypes());
+            errors.AddRange(ValidateSwitchValueTypes());
             errors.AddRange(CheckPositionalIndexes());
+            errors.AddRange(ValidateValueParsers());
 
             if (errors.Count > 0)
             {
@@ -43,7 +49,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> CheckDefaultValueTypes()
+        private IEnumerable<string> ValidateDefaultValueTypes()
         {
             foreach (var defaultValue in _typeDescriptor.DefaultValues)
             {
@@ -54,7 +60,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> CheckSwitchValueTypes()
+        private IEnumerable<string> ValidateSwitchValueTypes()
         {
             var switchValues = _typeDescriptor.GetSwitchValues();
 
@@ -90,6 +96,31 @@ namespace LH.CommandLine.Options
                     {
                         yield return $"The argument indexes must be continous. There is no argument with index {i}.";
                     }
+                }
+            }
+        }
+
+        private IEnumerable<string> ValidateValueParsers()
+        {
+            var valueParserInterface = typeof(IValueParser);
+
+            foreach (var parserType in _typeDescriptor.GetValueParserOverrideTypes())
+            {
+                if (!_valueParserFactory.CanCreateParser(parserType))
+                {
+                    if (_valueParserFactory is ActivatorValueParserFactory)
+                    {
+                        yield return $"The default ValueParserFactory cannot create an instance of {parserType}. Only types with parameterless constructors are supported. Pass your own factory to the OptionsParser.";
+                    }
+                    else
+                    {
+                        yield return $"The value parse factory {_valueParserFactory.GetType()} cannot create an instance of {parserType}.";
+                    }
+                }
+
+                if (!valueParserInterface.IsAssignableFrom(parserType))
+                {
+                    yield return $"The type {parserType} does not implement the IValueParser interface.";
                 }
             }
         }
