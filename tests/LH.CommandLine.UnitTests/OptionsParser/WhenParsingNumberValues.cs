@@ -8,6 +8,24 @@ namespace LH.CommandLine.UnitTests.OptionsParser
     public class WhenParsingNumberValues
     {
         [Fact]
+        public void ShouldParseByteValue()
+        {
+            var parser = new OptionsParser<ByteOptions>();
+            var options = parser.Parse(new[] { "--value", "32" });
+
+            Assert.Equal(32, options.Value);
+        }
+
+        [Fact]
+        public void ShouldThrowWhenByteValueInvalid()
+        {
+            var parser = new OptionsParser<ShortOptions>();
+
+            Assert.Throws<InvalidOptionsException>(
+                () => parser.Parse(new[] { "--value", "32ab" }));
+        }
+
+        [Fact]
         public void ShouldParseShortValue()
         {
             var parser = new OptionsParser<ShortOptions>();
@@ -119,6 +137,12 @@ namespace LH.CommandLine.UnitTests.OptionsParser
 
             Assert.Throws<InvalidOptionsException>(
                 () => parser.Parse(new[] { "--value", "32ab.45" }));
+        }
+
+        private class ByteOptions
+        {
+            [Option("value")]
+            public byte Value { get; set; }
         }
 
         private class ShortOptions
