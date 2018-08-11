@@ -17,7 +17,8 @@ namespace LH.CommandLine.Options.Values
             { typeof(decimal), new DecimalParser() },
             { typeof(float), new FloatParser() },
             { typeof(double), new DoubleParser() },
-            { typeof(bool), new BoolParser() }
+            { typeof(bool), new BoolParser() },
+            {typeof(byte[]), new ByteArrayParser() }
         };
 
         public static IValueParser GetValueParser(Type targetType)
