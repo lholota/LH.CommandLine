@@ -25,12 +25,5 @@ test_script:
 - ps: dotnet test ./tests/LH.CommandLine.UnitTests/LH.CommandLine.UnitTests.csproj --no-build -c $env:CONFIGURATION /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./Coverage.xml /p:Exclude="[*Tests?]*"
 - codecov -f ./tests/LH.CommandLine.UnitTests/Coverage.xml -t $(CODECOV_TOKEN)
 artifacts:
-- path: '**\*.nupkg'
-  name: Packages
-deploy:
-- provider: NuGet
-  api_key:
-    secure: mtQQf7BN2hkg6XKLxXchbXT5FFdCIEdWwMVxIRzemgTAAe8MKq1sZS89VOf3cEGt
-  skip_symbols: false
-  on:
-    branch: master
+- path: '**\LH.CommandLine\**\*.nupkg'
+  name: Nuget-LH.CommandLine
