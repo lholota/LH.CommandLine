@@ -10,6 +10,7 @@ namespace LH.CommandLine.Options.Values
         private static readonly IDictionary<Type, IValueParser> Parsers = new Dictionary<Type, IValueParser>
         {
             { typeof(string), new StringParser() },
+            { typeof(byte), new ByteParser() },
             { typeof(short), new Int16Parser() },
             { typeof(int), new Int32Parser() },
             { typeof(long), new Int64Parser() },
