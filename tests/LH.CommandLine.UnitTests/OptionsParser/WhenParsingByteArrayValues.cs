@@ -1,7 +1,7 @@
 ﻿using System;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options;
-using LH.CommandLine.Options.BuiltinParsers;
+using LH.CommandLine.Options.Values;
 using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
@@ -14,7 +14,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             var randomBytes = GetRandomBytes();
             var base64String = Convert.ToBase64String(randomBytes);
 
-            var parser = new OptionsParser<DefaultByteArrayOptions>();
+            var parser = new OptionsParser<Base64ByteArrayOptions>();
             var options = parser.Parse(new[] { "--bytes", base64String });
 
             Assert.Equal(randomBytes, options.Bytes);
@@ -45,9 +45,9 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldThrowWhenValueInvalid()
+        public void ShouldThrowWhenBase64ValueInvalid()
         {
-            var parser = new OptionsParser<HexByteArrayOptions>();
+            var parser = new OptionsParser<Base64ByteArrayOptions>();
             Assert.Throws<InvalidOptionsException>(
                 () => parser.Parse(new[] {"--bytes", "something%definitely$not;valid"}));
         }
@@ -60,16 +60,16 @@ namespace LH.CommandLine.UnitTests.OptionsParser
                 () => parser.Parse(new[] { "--bytes", "486" }));
         }
 
-        private class DefaultByteArrayOptions
+        private class Base64ByteArrayOptions
         {
             [Option("bytes")]
+            [ValueParser(typeof(Base64ByteArrayParser))]
             public byte[] Bytes { get; set; }
         }
 
         private class HexByteArrayOptions
         {
             [Option("bytes")]
-            [ValueParser(typeof(HexByteArrayParser))]
             public byte[] Bytes { get; set; }
         }
 

@@ -54,13 +54,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldThrowWhenCustomValueParserCannotBeCreated()
-        {
-            var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidCtor>();
-            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
-        }
-
-        [Fact]
         public void ShouldThrowWhenCustomValueParserDoesNotImplementInterface()
         {
             var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidInterface>();

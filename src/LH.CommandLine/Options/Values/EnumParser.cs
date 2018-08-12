@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
-using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.BuiltinParsers
+namespace LH.CommandLine.Options.Values
 {
     internal class EnumParser : IValueParser
     {
@@ -43,7 +42,10 @@ namespace LH.CommandLine.Options.BuiltinParsers
                     return true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // Ignore
+            }
 
             parsedValue = null;
             return false;

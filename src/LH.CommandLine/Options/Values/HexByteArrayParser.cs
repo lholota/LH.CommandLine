@@ -1,16 +1,15 @@
 ﻿using System;
-using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.BuiltinParsers
+namespace LH.CommandLine.Options.Values
 {
-    public class HexByteArrayParser : IValueParser
+    public class HexByteArrayParser : ValueParserBase<byte[]>, IValueParser
     {
-        public object Parse(string rawValue, Type targetType)
+        object IValueParser.Parse(string rawValue, Type targetType)
         {
-            return ConvertFromHexString(rawValue);
+            return Parse(rawValue);
         }
 
-        private byte[] ConvertFromHexString(string rawValue)
+        public override byte[] Parse(string rawValue)
         {
             if (rawValue.Length % 2 != 0)
             {

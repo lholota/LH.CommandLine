@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using LH.CommandLine.Options.BuiltinParsers;
 
 namespace LH.CommandLine.Options.Values
 {
@@ -19,7 +18,7 @@ namespace LH.CommandLine.Options.Values
             { typeof(float), new FloatParser() },
             { typeof(double), new DoubleParser() },
             { typeof(bool), new BoolParser() },
-            { typeof(byte[]), new Base64ByteArrayParser() }
+            { typeof(byte[]), new HexByteArrayParser() }
         };
 
         public static IValueParser GetValueParser(Type targetType)

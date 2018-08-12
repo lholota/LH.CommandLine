@@ -1,11 +1,15 @@
 ﻿using System;
-using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.BuiltinParsers
+namespace LH.CommandLine.Options.Values
 {
-    public class Base64ByteArrayParser : IValueParser
+    public class Base64ByteArrayParser : ValueParserBase<byte[]>, IValueParser
     {
-        public object Parse(string rawValue, Type targetType)
+        object IValueParser.Parse(string rawValue, Type targetType)
+        {
+            return Parse(rawValue);
+        }
+
+        public override byte[] Parse(string rawValue)
         {
             return Convert.FromBase64String(rawValue);
         }

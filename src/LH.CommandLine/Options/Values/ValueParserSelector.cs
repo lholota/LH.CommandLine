@@ -36,15 +36,21 @@ namespace LH.CommandLine.Options.Values
         {
             var factoryType = _valueParserFactory.GetType();
             var method = factoryType.GetMethod(nameof(IValueParserFactory.CreateParser));
+
+            // ReSharper disable once PossibleNullReferenceException
             var generic = method.MakeGenericMethod(parserType);
 
             try
             {
-                return (IValueParser)generic.Invoke(_valueParserFactory, null);
+                return (IValueParser) generic.Invoke(_valueParserFactory, null);
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException is CreatingValueParserFailedException)
+            {
+                throw ex.InnerException;
             }
             catch (TargetInvocationException ex)
             {
-                throw new CreatingValueParserFailedException(factoryType, parserType, ex);
+                throw CreatingValueParserFailedException.CreatingFailed(factoryType, parserType, ex);
             }
         }
     }

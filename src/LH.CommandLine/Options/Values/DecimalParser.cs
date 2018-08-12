@@ -1,9 +1,8 @@
 ﻿using System;
-using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options.BuiltinParsers
+namespace LH.CommandLine.Options.Values
 {
-    public class DecimalParser : IValueParser
+    internal class DecimalParser : IValueParser
     {
         public object Parse(string rawValue, Type targetType)
         {

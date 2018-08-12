@@ -1,4 +1,6 @@
 ﻿using System;
+using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
 
 namespace LH.CommandLine.Options.Values
 {
@@ -6,6 +8,13 @@ namespace LH.CommandLine.Options.Values
     {
         public T CreateParser<T>()
         {
+            var parserType = typeof(T);
+
+            if (!parserType.HasParameterlessConstructor())
+            {
+                throw CreatingValueParserFailedException.CannotCreateInActivatorFactory(parserType);
+            }
+
             return Activator.CreateInstance<T>();
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
@@ -99,20 +100,13 @@ namespace LH.CommandLine.Options
 
         private IEnumerable<string> ValidateValueParsers()
         {
-            var valueParserInterface = typeof(IValueParser);
+            var baseType = typeof(ValueParserBase<>);
 
             foreach (var parserType in _typeDescriptor.GetValueParserOverrideTypes())
             {
-                if (!parserType.IsSubclassOf(typeof(ValueParserBase<>)))
+                if (!parserType.IsSubclassOfGeneric(baseType))
                 {
-                    // TODO: Error
-                }
-
-                // TODO: Find the parser generic parameter and compare it with the property type
-
-                if (!valueParserInterface.IsAssignableFrom(parserType))
-                {
-                    yield return $"The type {parserType} does not implement the IValueParser interface.";
+                    yield return $"The value parser type {parserType} is not derived from {baseType}";
                 }
             }
         }
