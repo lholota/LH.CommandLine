@@ -33,7 +33,7 @@ namespace LH.CommandLine.Options.Factoring
             return true;
         }
 
-        public TOptions CreateOptions(IEnumerable<PropertyValue> values)
+        public TOptions CreateOptions(IReadOnlyCollection<PropertyValue> values)
         {
             var options = Activator.CreateInstance<TOptions>();
 

@@ -6,6 +6,6 @@ namespace LH.CommandLine.Options.Factoring
     {
         bool CanCreateOptions();
 
-        TOptions CreateOptions(IEnumerable<PropertyValue> values);
+        TOptions CreateOptions(IReadOnlyCollection<PropertyValue> values);
     }
 }
