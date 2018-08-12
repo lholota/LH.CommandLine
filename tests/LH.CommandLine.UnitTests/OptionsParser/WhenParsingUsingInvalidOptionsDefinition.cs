@@ -77,7 +77,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         private class OptionsWithNonContinousPositionalIndexes
-
         {
             [Argument(0)]
             public string SomeArg0 { get; set; }
