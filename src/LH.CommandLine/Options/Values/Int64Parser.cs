@@ -2,7 +2,7 @@
 
 namespace LH.CommandLine.Options.Values
 {
-    public class Int64Parser : IValueParser
+    internal class Int64Parser : IValueParser
     {
         public object Parse(string rawValue, Type targetType)
         {

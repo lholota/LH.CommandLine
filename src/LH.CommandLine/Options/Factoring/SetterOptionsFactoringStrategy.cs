@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LH.CommandLine.Extensions;
 
 namespace LH.CommandLine.Options.Factoring
 {
@@ -14,7 +15,7 @@ namespace LH.CommandLine.Options.Factoring
 
         public bool CanCreateOptions()
         {
-            if (!HasParameterlessConstructor(_typeDescriptor.OptionsType))
+            if (!_typeDescriptor.OptionsType.HasParameterlessConstructor())
             {
                 return false;
             }
@@ -42,11 +43,6 @@ namespace LH.CommandLine.Options.Factoring
             }
 
             return options;
-        }
-
-        private static bool HasParameterlessConstructor(Type type)
-        {
-            return type.GetConstructor(new Type[0]) != null;
         }
     }
 }

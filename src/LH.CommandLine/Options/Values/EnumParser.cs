@@ -30,7 +30,7 @@ namespace LH.CommandLine.Options.Values
         private bool TryParseUnderlyingTypeValue(string rawValue, Type targetType, out object parsedValue)
         {
             var underlyingType = targetType.GetEnumUnderlyingType();
-            var underlyingTypeParser = ValueParsers.GetValueParser(underlyingType);
+            var underlyingTypeParser = DefaultParsers.GetValueParser(underlyingType);
 
             try
             {
@@ -42,7 +42,10 @@ namespace LH.CommandLine.Options.Values
                     return true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // Ignore
+            }
 
             parsedValue = null;
             return false;

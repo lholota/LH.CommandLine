@@ -14,13 +14,20 @@ namespace LH.CommandLine.Options
         private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly OptionsFactory<TOptions> _optionsFactory;
         private readonly OptionsDefinitionValidator _optionsDefinitionValidator;
+        private readonly ValueParserSelector _valueParserSelector;
 
-        public OptionsParser()
+        public OptionsParser(IValueParserFactory valueParserFactory)
         {
             _typeDescriptor = new OptionsTypeDescriptor(typeof(TOptions));
             _optionsFactory = new OptionsFactory<TOptions>(_typeDescriptor);
             _optionsValidator = new OptionsValidator();
             _optionsDefinitionValidator = new OptionsDefinitionValidator(_typeDescriptor);
+            _valueParserSelector = new ValueParserSelector(_typeDescriptor, valueParserFactory);
+        }
+
+        public OptionsParser()
+            : this(new ActivatorValueParserFactory())
+        {
         }
 
         public TOptions Parse(string[] args)
@@ -73,8 +80,9 @@ namespace LH.CommandLine.Options
 
         private void ParseAndSetValue(OptionsParsingErrors errors, OptionsValues values, PropertyInfo propertyInfo, string rawValue)
         {
-            var parser = ValueParsers.GetValueParser(propertyInfo.PropertyType);
             object parsedValue;
+
+            var parser = _valueParserSelector.GetParserForProperty(propertyInfo);
 
             try
             {

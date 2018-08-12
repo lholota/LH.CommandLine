@@ -31,7 +31,7 @@ namespace LH.CommandLine.Options
             {
                 throw new DuplicateValueException(propertyInfo.Name);
             }
-
+            
             _values[propertyInfo] = new OptionValue(value, false);
         }
 

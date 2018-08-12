@@ -2,7 +2,7 @@
 
 namespace LH.CommandLine.Options.Values
 {
-    public class FloatParser : IValueParser
+    internal class FloatParser : IValueParser
     {
         public object Parse(string rawValue, Type targetType)
         {

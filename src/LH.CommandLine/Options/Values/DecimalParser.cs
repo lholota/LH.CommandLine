@@ -2,7 +2,7 @@
 
 namespace LH.CommandLine.Options.Values
 {
-    public class DecimalParser : IValueParser
+    internal class DecimalParser : IValueParser
     {
         public object Parse(string rawValue, Type targetType)
         {

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
 {
@@ -8,7 +10,8 @@ namespace LH.CommandLine.Options
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
 
-        public OptionsDefinitionValidator(OptionsTypeDescriptor typeDescriptor)
+        public OptionsDefinitionValidator(
+            OptionsTypeDescriptor typeDescriptor)
         {
             _typeDescriptor = typeDescriptor;
         }
@@ -18,9 +21,10 @@ namespace LH.CommandLine.Options
             var errors = new List<string>();
 
             errors.AddRange(ValidateNamesAreUnique());
-            errors.AddRange(CheckDefaultValueTypes());
-            errors.AddRange(CheckSwitchValueTypes());
+            errors.AddRange(ValidateDefaultValueTypes());
+            errors.AddRange(ValidateSwitchValueTypes());
             errors.AddRange(CheckPositionalIndexes());
+            errors.AddRange(ValidateValueParsers());
 
             if (errors.Count > 0)
             {
@@ -43,7 +47,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> CheckDefaultValueTypes()
+        private IEnumerable<string> ValidateDefaultValueTypes()
         {
             foreach (var defaultValue in _typeDescriptor.DefaultValues)
             {
@@ -54,7 +58,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> CheckSwitchValueTypes()
+        private IEnumerable<string> ValidateSwitchValueTypes()
         {
             var switchValues = _typeDescriptor.GetSwitchValues();
 
@@ -90,6 +94,19 @@ namespace LH.CommandLine.Options
                     {
                         yield return $"The argument indexes must be continous. There is no argument with index {i}.";
                     }
+                }
+            }
+        }
+
+        private IEnumerable<string> ValidateValueParsers()
+        {
+            var baseType = typeof(ValueParserBase<>);
+
+            foreach (var parserType in _typeDescriptor.GetValueParserOverrideTypes())
+            {
+                if (!parserType.IsSubclassOfGeneric(baseType))
+                {
+                    yield return $"The value parser type {parserType} is not derived from {baseType}";
                 }
             }
         }

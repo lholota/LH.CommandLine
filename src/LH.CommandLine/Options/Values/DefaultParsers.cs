@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LH.CommandLine.Options.Values
 {
-    internal static class ValueParsers
+    internal static class DefaultParsers
     {
         private static readonly EnumParser EnumParser = new EnumParser();
 
@@ -18,7 +18,7 @@ namespace LH.CommandLine.Options.Values
             { typeof(float), new FloatParser() },
             { typeof(double), new DoubleParser() },
             { typeof(bool), new BoolParser() },
-            {typeof(byte[]), new ByteArrayParser() }
+            { typeof(byte[]), new HexByteArrayParser() }
         };
 
         public static IValueParser GetValueParser(Type targetType)

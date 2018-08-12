@@ -11,6 +11,7 @@ namespace LH.CommandLine.Options
         private readonly IDictionary<string, PropertyValue> _switchValues;
         private readonly IDictionary<int, PropertyInfo> _positionalProperties;
         private readonly IDictionary<string, PropertyInfo> _namedOptionPropertiesLookup;
+        private readonly IDictionary<PropertyInfo, Type> _valueParserOverridesLookup;
 
         public OptionsTypeDescriptor(Type optionsType)
         {
@@ -22,6 +23,7 @@ namespace LH.CommandLine.Options
             _switchValues = CreateSwitchValuesLookup(Properties);
             _positionalProperties = CreatePositionalPropertiesLookup(Properties);
             _namedOptionPropertiesLookup = CreateNamedOptionsPropertiesLookup(Properties);
+            _valueParserOverridesLookup = CreatePropertiesValueParserOverridesLookup(Properties);
         }
 
         public Type OptionsType { get; }
@@ -45,6 +47,11 @@ namespace LH.CommandLine.Options
             return _namedOptionPropertiesLookup.TryGetValue(name, out propertyInfo);
         }
 
+        public bool TryFindValueParserOverrideType(PropertyInfo propertyInfo, out Type parserType)
+        {
+            return _valueParserOverridesLookup.TryGetValue(propertyInfo, out parserType);
+        }
+
         public IEnumerable<string> GetAliases()
         {
             return _switchValues.Keys.Concat(_namedOptionPropertiesLookup.Keys);
@@ -53,6 +60,11 @@ namespace LH.CommandLine.Options
         public IEnumerable<int> GetPositionalIndexes()
         {
             return _positionalProperties.Keys;
+        }
+
+        public IEnumerable<Type> GetValueParserOverrideTypes()
+        {
+            return _valueParserOverridesLookup.Select(x => x.Value);
         }
 
         public IEnumerable<PropertyValue> GetSwitchValues()
@@ -89,7 +101,7 @@ namespace LH.CommandLine.Options
                 var attribute = propertyInfo.GetCustomAttribute<ArgumentAttribute>();
 
                 if (attribute != null)
-                {
+                { 
                     result.Add(attribute.Index, propertyInfo);
                 }
             }
@@ -111,6 +123,23 @@ namespace LH.CommandLine.Options
                     {
                         result.Add(alias, propertyInfo);
                     }
+                }
+            }
+
+            return result;
+        }
+
+        private IDictionary<PropertyInfo, Type> CreatePropertiesValueParserOverridesLookup(IReadOnlyCollection<PropertyInfo> properties)
+        {
+            var result = new Dictionary<PropertyInfo, Type>();
+
+            foreach (var propertyInfo in properties)
+            {
+                var attribute = propertyInfo.GetCustomAttribute<ValueParserAttribute>();
+
+                if (attribute != null)
+                {
+                    result.Add(propertyInfo, attribute.ParserType);
                 }
             }
 
