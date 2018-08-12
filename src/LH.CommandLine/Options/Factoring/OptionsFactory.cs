@@ -11,7 +11,8 @@ namespace LH.CommandLine.Options.Factoring
         {
             _strategies = new IOptionsFactory<TOptions>[]
             {
-                new SetterOptionsFactoringStrategy<TOptions>(typeDescriptor)
+                new SetterOptionsFactoringStrategy<TOptions>(typeDescriptor),
+                new CtorOptionsFactoringStrategy<TOptions>(typeDescriptor)
             };
         }
 
@@ -20,7 +21,7 @@ namespace LH.CommandLine.Options.Factoring
             return FindStrategy() != null;
         }
 
-        public TOptions CreateOptions(IEnumerable<PropertyValue> values)
+        public TOptions CreateOptions(IReadOnlyCollection<PropertyValue> values)
         {
             var strategy = FindStrategy();
 

@@ -2,18 +2,22 @@
 using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
 {
-    internal class OptionsDefinitionValidator
+    internal class OptionsDefinitionValidator<TOptions>
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
+        private readonly IOptionsFactory<TOptions> _optionsFactory;
 
         public OptionsDefinitionValidator(
-            OptionsTypeDescriptor typeDescriptor)
+            OptionsTypeDescriptor typeDescriptor,
+            IOptionsFactory<TOptions> optionsFactory)
         {
             _typeDescriptor = typeDescriptor;
+            _optionsFactory = optionsFactory;
         }
 
         public void Validate()
@@ -23,8 +27,9 @@ namespace LH.CommandLine.Options
             errors.AddRange(ValidateNamesAreUnique());
             errors.AddRange(ValidateDefaultValueTypes());
             errors.AddRange(ValidateSwitchValueTypes());
-            errors.AddRange(CheckPositionalIndexes());
+            errors.AddRange(ValidatePositionalIndexes());
             errors.AddRange(ValidateValueParsers());
+            errors.AddRange(ValidateOptionsCanBeConstruted());
 
             if (errors.Count > 0)
             {
@@ -71,7 +76,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> CheckPositionalIndexes()
+        private IEnumerable<string> ValidatePositionalIndexes()
         {
             var indexes = _typeDescriptor.GetPositionalIndexes()
                 .OrderBy(x => x)
@@ -108,6 +113,14 @@ namespace LH.CommandLine.Options
                 {
                     yield return $"The value parser type {parserType} is not derived from {baseType}";
                 }
+            }
+        }
+
+        private IEnumerable<string> ValidateOptionsCanBeConstruted()
+        {
+            if (!_optionsFactory.CanCreateOptions())
+            {
+                yield return $"Cannot create an instance of type {typeof(TOptions)}. The options must be either a type with a parameterless constructor and public setters or a type with constructor parameters for all properties.";
             }
         }
     }
