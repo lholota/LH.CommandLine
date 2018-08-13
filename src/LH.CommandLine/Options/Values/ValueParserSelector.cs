@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Values
 {
@@ -24,9 +26,14 @@ namespace LH.CommandLine.Options.Values
 
         public IValueParser GetParserForProperty(PropertyInfo propertyInfo)
         {
-            if (_typeDescriptor.TryFindValueParserOverrideType(propertyInfo, out var parserType))
+            if (_typeDescriptor.TryFindValueParserOverrideType(propertyInfo, out Type externalParserType))
             {
-                return CreateExternalParser(parserType);
+                return CreateExternalParser(externalParserType);
+            }
+
+            if (propertyInfo.PropertyType.IsCollection(out var itemType))
+            {
+                return DefaultParsers.GetValueParser(itemType);
             }
 
             return DefaultParsers.GetValueParser(propertyInfo.PropertyType);

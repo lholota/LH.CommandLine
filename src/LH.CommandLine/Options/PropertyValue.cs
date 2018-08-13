@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Reflection;
+using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options
 {
     internal class PropertyValue
     {
-        public PropertyValue(PropertyInfo propertyInfo, object value)
+        public PropertyValue(OptionProperty property, object value)
         {
-            PropertyInfo = propertyInfo;
-            Value = value;
+
         }
+
+        //public PropertyValue(PropertyInfo propertyInfo, object value)
+        //{
+        //    PropertyInfo = propertyInfo;
+        //    Value = value;
+        //}
 
         public PropertyInfo PropertyInfo { get; }
 

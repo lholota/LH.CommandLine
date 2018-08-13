@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options.Factoring;
+using LH.CommandLine.Options.Reflection;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
@@ -18,7 +19,7 @@ namespace LH.CommandLine.Options
 
         public OptionsParser(IValueParserFactory valueParserFactory)
         {
-            _typeDescriptor = new OptionsTypeDescriptor(typeof(TOptions));
+            _typeDescriptor = new OptionsTypeDescriptor(typeof(Type));
             _optionsFactory = new OptionsFactory<TOptions>(_typeDescriptor);
             _optionsValidator = new OptionsValidator();
             _optionsDefinitionValidator = new OptionsDefinitionValidator<TOptions>(_typeDescriptor, _optionsFactory);

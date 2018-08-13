@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Factoring
 {

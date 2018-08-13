@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Factoring
 {

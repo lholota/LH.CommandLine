@@ -1,6 +1,7 @@
 ﻿using System;
 using LH.CommandLine.Options;
 using System.ComponentModel;
+using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
@@ -26,6 +27,16 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             var options = parser.Parse(new string[0]);
 
             Assert.Equal(DefaultValue, options.Email);
+        }
+
+        [Fact]
+        [DefaultValue(32)]
+        public void ShouldReturnDefaultValue_WhenCollectionOptionNotSpecified()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionWithDefaultValue>();
+            var options = parser.Parse(new string[0]);
+
+            Assert.Equal(new[] { "Default" }, options.Strings);
         }
 
         [Fact]

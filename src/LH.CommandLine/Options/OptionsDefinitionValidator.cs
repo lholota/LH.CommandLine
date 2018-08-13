@@ -3,6 +3,7 @@ using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Extensions;
 using LH.CommandLine.Options.Factoring;
+using LH.CommandLine.Options.Reflection;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
@@ -24,12 +25,15 @@ namespace LH.CommandLine.Options
         {
             var errors = new List<string>();
 
-            errors.AddRange(ValidateNamesAreUnique());
-            errors.AddRange(ValidateDefaultValueTypes());
-            errors.AddRange(ValidateSwitchValueTypes());
-            errors.AddRange(ValidatePositionalIndexes());
-            errors.AddRange(ValidateValueParsers());
-            errors.AddRange(ValidateOptionsCanBeConstruted());
+            foreach (var property in _typeDescriptor.Properties)
+            {
+                ValidateDefaultValue(errors, property);
+                ValidateSwitchValues(errors, property);
+                ValidateCustomValueParser(errors, property);
+            }
+
+            ValidatePositionalIndexes(errors);
+            ValidateAliases(errors);
 
             if (errors.Count > 0)
             {
@@ -37,55 +41,56 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private IEnumerable<string> ValidateNamesAreUnique()
+        private void ValidateDefaultValue(ICollection<string> errors, OptionProperty property)
         {
-            var groupedAliases = _typeDescriptor
-                .GetAliases()
-                .GroupBy(x => x);
-
-            foreach (var group in groupedAliases)
+            if (property.HasDefaultValue)
             {
-                if (group.Count() > 1)
+                var defaultValueType = property.DefaultValue?.GetType();
+
+                if (!property.Type.IsAssignableFrom(defaultValueType))
                 {
-                    yield return $"The alias '{group.Key}' is used for more than one Option or Switch.";
+                    errors.Add(
+                        $"The default value of type {defaultValueType} cannot be assigned to property of type {property.Type} (property name {property.Name})");
                 }
             }
         }
 
-        private IEnumerable<string> ValidateDefaultValueTypes()
+        private void ValidateSwitchValues(ICollection<string> errors, OptionProperty property)
         {
-            foreach (var defaultValue in _typeDescriptor.DefaultValues)
+            if (property.HasDefaultValue)
             {
-                if (!defaultValue.IsValid())
+                var defaultValueType = property.DefaultValue?.GetType();
+
+                if (!property.Type.IsAssignableFrom(defaultValueType))
                 {
-                    yield return $"The default value of type {defaultValue.ValueType} cannot be assigned to property of type {defaultValue.PropertyType} (property name {defaultValue.PropertyName})";
+                    errors.Add(
+                        $"The default value of type {defaultValueType} cannot be assigned to property of type {property.Type} (property name {property.Name})");
                 }
             }
         }
 
-        private IEnumerable<string> ValidateSwitchValueTypes()
+        private void ValidateCustomValueParser(ICollection<string> errors, OptionProperty property)
         {
-            var switchValues = _typeDescriptor.GetSwitchValues();
-
-            foreach (var switchValue in switchValues)
+            if (!property.HasCustomParser)
             {
-                if (!switchValue.IsValid())
-                {
-                    yield return $"The switch value of type {switchValue.ValueType} cannot be assigned to property of type {switchValue.PropertyType} (property name {switchValue.PropertyName})";
-                }
+                return;
+            }
+
+            var baseType = typeof(ValueParserBase<>);
+
+            if (!property.CustomParserType.IsSubclassOfGeneric(baseType))
+            {
+                errors.Add($"The value parser type {property.CustomParserType} is not derived from {baseType}");
             }
         }
 
-        private IEnumerable<string> ValidatePositionalIndexes()
+        private void ValidatePositionalIndexes(ICollection<string> errors)
         {
-            var indexes = _typeDescriptor.GetPositionalIndexes()
+            var indexes = _typeDescriptor.Properties
+                .Where(x => x.HasPositionalIndex)
+                .Select(x => x.PositionalIndex)
                 .OrderBy(x => x)
                 .ToArray();
-
-            if (indexes.Length == 0)
-            {
-                yield break;
-            }
 
             for (var i = 0; i < indexes.Length; i++)
             {
@@ -93,34 +98,39 @@ namespace LH.CommandLine.Options
                 {
                     if (i == 0)
                     {
-                        yield return "The argument indexes must start with 0.";
+                        errors.Add("The argument indexes must start with 0.");
                     }
                     else
                     {
-                        yield return $"The argument indexes must be continous. There is no argument with index {i}.";
+                        errors.Add($"The argument indexes must be continous. There is no argument with index {i}.");
                     }
                 }
             }
         }
 
-        private IEnumerable<string> ValidateValueParsers()
+        private void ValidateAliases(ICollection<string> errors)
         {
-            var baseType = typeof(ValueParserBase<>);
+            var optionAliases = _typeDescriptor.Properties.SelectMany(x => x.OptionAliases);
+            var switchAliases = _typeDescriptor.Properties.SelectMany(x => x.Switches).Select(x => x.Key);
 
-            foreach (var parserType in _typeDescriptor.GetValueParserOverrideTypes())
+            var groupedAliases = optionAliases
+                .Concat(switchAliases)
+                .GroupBy(x => x);
+
+            foreach (var group in groupedAliases)
             {
-                if (!parserType.IsSubclassOfGeneric(baseType))
+                if (group.Count() > 1)
                 {
-                    yield return $"The value parser type {parserType} is not derived from {baseType}";
+                    errors.Add($"The alias '{group.Key}' is used for more than one Option or Switch.");
                 }
             }
         }
 
-        private IEnumerable<string> ValidateOptionsCanBeConstruted()
+        private void ValidateOptionsCanBeConstruted(ICollection<string> errors)
         {
             if (!_optionsFactory.CanCreateOptions())
             {
-                yield return $"Cannot create an instance of type {typeof(TOptions)}. The options must be either a type with a parameterless constructor and public setters or a type with constructor parameters for all properties.";
+                errors.Add($"Cannot create an instance of type {typeof(TOptions)}. The options must be either a type with a parameterless constructor and public setters or a type with constructor parameters for all properties.");
             }
         }
     }

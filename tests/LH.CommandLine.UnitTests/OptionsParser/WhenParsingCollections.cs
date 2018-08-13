@@ -71,6 +71,15 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
+        public void ShouldParseCollectionWhenOptionsHaveDefaultValue()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionWithDefaultValue>();
+            var options = parser.Parse(new[] { "--strings", "A", "B" });
+
+            Assert.Equal(new[] { "A", "B" }, options.Strings);
+        }
+
+        [Fact]
         public void ShouldParseSwitchOnCollectionsWhichShouldAddValueToTheList()
         {
             var parser = new OptionsParser<OptionsWithCollectionSwitches>();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Factoring
 {
