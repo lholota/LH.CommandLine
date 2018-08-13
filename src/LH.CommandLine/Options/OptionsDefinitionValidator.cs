@@ -12,13 +12,16 @@ namespace LH.CommandLine.Options
     {
         private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly IOptionsFactory<TOptions> _optionsFactory;
+        private readonly ValueParserSelector _valueParserSelector;
 
         public OptionsDefinitionValidator(
             OptionsTypeDescriptor typeDescriptor,
-            IOptionsFactory<TOptions> optionsFactory)
+            IOptionsFactory<TOptions> optionsFactory,
+            ValueParserSelector valueParserSelector)
         {
             _typeDescriptor = typeDescriptor;
             _optionsFactory = optionsFactory;
+            _valueParserSelector = valueParserSelector;
         }
 
         public void Validate()
@@ -30,14 +33,24 @@ namespace LH.CommandLine.Options
                 ValidateDefaultValue(errors, property);
                 ValidateSwitchValues(errors, property);
                 ValidateCustomValueParser(errors, property);
+                ValidateCanBeParsed(errors, property);
             }
 
+            ValidateOptionsCanBeConstruted(errors);
             ValidatePositionalIndexes(errors);
             ValidateAliases(errors);
 
             if (errors.Count > 0)
             {
                 throw new InvalidOptionsDefinitionException(_typeDescriptor.OptionsType, errors);
+            }
+        }
+
+        private void ValidateCanBeParsed(ICollection<string> errors, OptionProperty property)
+        {
+            if (!_valueParserSelector.HasParserForProperty(property))
+            {
+                errors.Add($"There is no parser for the type {property.Type}, please create your own implementation and use the ValueParserAttribute on the property {property.Name}.");
             }
         }
 

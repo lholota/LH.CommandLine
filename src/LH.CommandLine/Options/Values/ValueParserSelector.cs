@@ -1,42 +1,33 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
-using LH.CommandLine.Extensions;
 using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Values
 {
     internal class ValueParserSelector
     {
-        private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly IValueParserFactory _valueParserFactory;
 
-        public ValueParserSelector(
-            OptionsTypeDescriptor typeDescriptor,
-            IValueParserFactory valueParserFactory)
+        public ValueParserSelector(IValueParserFactory valueParserFactory)
         {
-            _typeDescriptor = typeDescriptor;
             _valueParserFactory = valueParserFactory;
         }
 
-        public bool HasParserForProperty(PropertyInfo propertyInfo)
+        public bool HasParserForProperty(OptionProperty optionProperty)
         {
-            return GetParserForProperty(propertyInfo) != null;
+            return optionProperty.HasCustomParser
+                   || DefaultParsers.HasParser(optionProperty.ParsedType);
         }
 
-        public IValueParser GetParserForProperty(PropertyInfo propertyInfo)
+        public IValueParser GetParserForProperty(OptionProperty optionProperty)
         {
-            if (_typeDescriptor.TryFindValueParserOverrideType(propertyInfo, out Type externalParserType))
+            if (optionProperty.HasCustomParser)
             {
-                return CreateExternalParser(externalParserType);
+                return CreateExternalParser(optionProperty.CustomParserType);
             }
 
-            if (propertyInfo.PropertyType.IsCollection(out var itemType))
-            {
-                return DefaultParsers.GetValueParser(itemType);
-            }
-
-            return DefaultParsers.GetValueParser(propertyInfo.PropertyType);
+            return DefaultParsers.GetValueParser(optionProperty.ParsedType);
         }
 
         private IValueParser CreateExternalParser(Type parserType)

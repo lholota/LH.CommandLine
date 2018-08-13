@@ -22,8 +22,8 @@ namespace LH.CommandLine.Options
             _typeDescriptor = new OptionsTypeDescriptor(typeof(Type));
             _optionsFactory = new OptionsFactory<TOptions>(_typeDescriptor);
             _optionsValidator = new OptionsValidator();
-            _optionsDefinitionValidator = new OptionsDefinitionValidator<TOptions>(_typeDescriptor, _optionsFactory);
-            _valueParserSelector = new ValueParserSelector(_typeDescriptor, valueParserFactory);
+            _valueParserSelector = new ValueParserSelector(valueParserFactory);
+            _optionsDefinitionValidator = new OptionsDefinitionValidator<TOptions>(_typeDescriptor, _optionsFactory, _valueParserSelector);
         }
 
         public OptionsParser()
