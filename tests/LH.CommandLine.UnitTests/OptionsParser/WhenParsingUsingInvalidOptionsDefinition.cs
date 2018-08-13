@@ -1,4 +1,5 @@
-﻿using LH.CommandLine.Options;
+﻿using System;
+using LH.CommandLine.Options;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
@@ -58,6 +59,12 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         {
             var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidInterface>();
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
+        [Fact]
+        public void ShouldThrowWhenCollectionIsNotLastPositional()
+        {
+            throw new NotImplementedException();
         }
 
         private class OptionsWithInvalidSwitchValue

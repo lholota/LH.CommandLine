@@ -1,78 +1,128 @@
-﻿using System;
+﻿using LH.CommandLine.Exceptions;
+using LH.CommandLine.Options;
+using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
 {
     public class WhenParsingCollections
     {
-        /*
-         * Collection with spaces cannot be positional!
-         * -> Separator
-         * -> asda,asd,asd,asda,sd,asdad
-         * -> 1|2|3.5|3,5
-         * -> 1,2,3,4,5
-         * "asasd as adasd,asdasd sda asd a,asdasdas sd asda sd"
-         * "asdasd", "asdasd", "asdasd", "asdasdasd", "asdasd" -> quotes are lost when dotnet parses args :/
-         */
-
         [Fact]
         public void ShouldParseIEnumerableOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithIEnumerableOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseArrayOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithArrayOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseReadOnlyCollectionOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithReadOnlyCollectionOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseCollectionOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithCollectionOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseReadOnlyListOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithReadOnlyListOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
+        }
+
+        [Fact]
+        public void ShouldParseIListOfIntegers()
+        {
+            var parser = new OptionsParser<OptionsWithIListOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseListOfIntegers()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithListOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
+        }
+
+        [Fact]
+        public void ShouldParseSwitchOnCollectionsWhichShouldAddValueToTheList()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionSwitches>();
+            var options = parser.Parse(new[] { "--one", "--two" });
+
+            Assert.Equal(new[] { 1, 2 }, options.Numbers);
         }
 
         [Fact]
         public void ShouldParseCollectionWithCustomParser()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithCollectionWithCustomParser>();
+            var options = parser.Parse(new[] { "--strings", "A", "B" });
+
+            Assert.Equal(new[] { "CustomParsed:A", "CustomParsed:B" }, options.Strings);
         }
 
         [Fact]
-        public void ShouldPassWhenCollectionHasNoItems()
+        public void ShouldThrowIfCollectionOptionSpecifiedWithoutValue()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithIEnumerableOfInts>();
+            var options = parser.Parse(new[] { "--numbers" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers); // TODO: Verify the exception message, it should be improved
         }
 
         [Fact]
         public void ShouldThrowIfCollectionValidationFails()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithValidatedCollection>();
+
+            Assert.Throws<InvalidOptionsException>(
+                () => parser.Parse(new[] { "--strings", "A" }));
         }
 
         [Fact]
         public void ShouldNotIncludeNextNamedOptionIntoCollection()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithArrayOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3", "--strings", "some-value" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
+            Assert.Equal("some-value", options.String);
+        }
+
+        [Fact]
+        public void ShouldThrowWhenSwitchSpecifiedMultipleTimes()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionSwitches>();
+
+            Assert.Throws<InvalidOptionsException>(
+                () => parser.Parse(new[] { "--one", "--one" }));
         }
     }
 }
