@@ -4,7 +4,7 @@ using LH.CommandLine.Extensions;
 
 namespace LH.CommandLine.Options.Values
 {
-    internal class ActivatorValueParserFactory : IValueParserFactory
+    internal class ActivatorValueParserFactory : Options2.Values.IValueParserFactory
     {
         public T CreateParser<T>()
         {

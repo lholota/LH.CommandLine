@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using LH.CommandLine.Options.Reflection;
 
-namespace LH.CommandLine.Options.Reflection
+namespace LH.CommandLine.Options.Descriptors
 {
     internal class OptionProperty
     {

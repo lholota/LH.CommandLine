@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Options.Descriptors;
 using LH.CommandLine.Options.Reflection;
 
 namespace LH.CommandLine.Options.Values
 {
     internal class ValueParserSelector
     {
-        private readonly IValueParserFactory _valueParserFactory;
+        private readonly Options2.Values.IValueParserFactory _valueParserFactory;
 
-        public ValueParserSelector(IValueParserFactory valueParserFactory)
+        public ValueParserSelector(Options2.Values.IValueParserFactory valueParserFactory)
         {
             _valueParserFactory = valueParserFactory;
         }
@@ -33,7 +34,7 @@ namespace LH.CommandLine.Options.Values
         private IValueParser CreateExternalParser(Type parserType)
         {
             var factoryType = _valueParserFactory.GetType();
-            var method = factoryType.GetMethod(nameof(IValueParserFactory.CreateParser));
+            var method = factoryType.GetMethod(nameof(Options2.Values.IValueParserFactory.CreateParser));
 
             // ReSharper disable once PossibleNullReferenceException
             var generic = method.MakeGenericMethod(parserType);

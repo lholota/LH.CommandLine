@@ -5,6 +5,7 @@ using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Reflection;
 using LH.CommandLine.Options.Values;
+using IValueParserFactory = LH.CommandLine.Options2.Values.IValueParserFactory;
 
 namespace LH.CommandLine.Options
 {

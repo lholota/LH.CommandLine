@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options2.Metadata;
 using LH.CommandLine.Options2.Validation;
@@ -9,7 +10,6 @@ namespace LH.CommandLine.Options2
     {
         private readonly OptionsMetadata _optionsMetadata;
         private readonly OptionsMetadataValidator _optionsMetadataValidator;
-        private readonly IReadOnlyList<OptionProperty> _properties;
 
         public OptionsParser()
         {
@@ -21,31 +21,51 @@ namespace LH.CommandLine.Options2
         {
             ValidateMetadata();
 
-            OptionProperty scopeProperty = null;
+            OptionPropertyMetadata scopeProperty = null;
 
             for (var i = 0; i < args.Length; i++)
             {
-                foreach (var optionProperty in _properties)
+                foreach (var property in _optionsMetadata.Properties)
                 {
-                    // None, Handled, HandledSetScope
-                    if (optionProperty.ParseArg(args[i], i, out var setScope))
+                    if (property.Switches.TryGetValue(args[i], out var switchValue))
                     {
-                        if (setScope)
-                        {
-                            scopeProperty = optionProperty;
-                        }
+                        // TODO: Set value
+
+                        scopeProperty = null;
 
                         break;
                     }
-                }
 
-                if (scopeProperty != null)
-                {
-                    scopeProperty.HandleInScopeArg(args[i]);
-                }
-                else
-                {
-                    // Error -> unknown option
+                    if (property.HasPositionalIndex && property.PositionalIndex == i)
+                    {
+                        // TODO: Parse & set value
+
+                        scopeProperty = property.IsCollection 
+                            ? property 
+                            : null;
+
+                        break;
+                    }
+
+                    if (property.OptionAliases.Contains(args[i]))
+                    {
+                        // TODO: Parse & set value
+
+                        scopeProperty = property.IsCollection
+                            ? property
+                            : null;
+
+                        break;
+                    }
+
+                    if (scopeProperty != null)
+                    {
+                        // TODO: Add value to scope property
+                    }
+                    else
+                    {
+                        // TODO: Throw unknown option
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LH.CommandLine.Options.Descriptors;
 
 namespace LH.CommandLine.Options.Reflection
 {

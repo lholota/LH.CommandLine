@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
-using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options2.Values
 {

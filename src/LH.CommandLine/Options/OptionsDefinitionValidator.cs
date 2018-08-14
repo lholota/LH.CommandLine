@@ -2,6 +2,7 @@
 using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Descriptors;
 using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Reflection;
 using LH.CommandLine.Options.Values;
