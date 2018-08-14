@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
-using LH.CommandLine.Options.Descriptors;
-using LH.CommandLine.Options.Reflection;
+using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options.Values
 {
     internal class ValueParserSelector
     {
-        private readonly Options2.Values.IValueParserFactory _valueParserFactory;
+        private readonly IValueParserFactory _valueParserFactory;
 
-        public ValueParserSelector(Options2.Values.IValueParserFactory valueParserFactory)
+        public ValueParserSelector(IValueParserFactory valueParserFactory)
         {
             _valueParserFactory = valueParserFactory;
         }
 
-        public bool HasParserForProperty(OptionProperty optionProperty)
+        public bool HasParserForProperty(OptionPropertyMetadata propertyMetadata)
         {
-            return optionProperty.HasCustomParser
-                   || DefaultParsers.HasParser(optionProperty.ParsedType);
+            return propertyMetadata.HasCustomParser
+                   || DefaultParsers.HasParser(propertyMetadata.ParsedType);
         }
 
-        public IValueParser GetParserForProperty(OptionProperty optionProperty)
+        public IValueParser GetParserForProperty(OptionPropertyMetadata optionProperty)
         {
             if (optionProperty.HasCustomParser)
             {
@@ -31,10 +30,17 @@ namespace LH.CommandLine.Options.Values
             return DefaultParsers.GetValueParser(optionProperty.ParsedType);
         }
 
+        public ICollectionValueParser GetParserForCollectionProperty(OptionPropertyMetadata optionProperty)
+        {
+            var innerParser = GetParserForProperty(optionProperty);
+
+            return new CollectionParser(innerParser);
+        }
+
         private IValueParser CreateExternalParser(Type parserType)
         {
             var factoryType = _valueParserFactory.GetType();
-            var method = factoryType.GetMethod(nameof(Options2.Values.IValueParserFactory.CreateParser));
+            var method = factoryType.GetMethod(nameof(IValueParserFactory.CreateParser));
 
             // ReSharper disable once PossibleNullReferenceException
             var generic = method.MakeGenericMethod(parserType);

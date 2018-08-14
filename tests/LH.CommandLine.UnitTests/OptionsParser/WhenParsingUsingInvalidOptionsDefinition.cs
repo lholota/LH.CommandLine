@@ -1,5 +1,4 @@
-﻿using System;
-using LH.CommandLine.Options;
+﻿using LH.CommandLine.Options;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
@@ -64,7 +63,8 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenCollectionIsNotLastPositional()
         {
-            throw new NotImplementedException();
+            var parser = new OptionsParser<OptionsWithCollectionPositionalWhichIsNotLast>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
         private class OptionsWithInvalidSwitchValue
@@ -91,6 +91,18 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             public string SomeArg1 { get; set; }
 
             [Argument(5)]
+            public string SomeArg5 { get; set; }
+        }
+
+        private class OptionsWithCollectionPositionalWhichIsNotLast
+        {
+            [Argument(0)]
+            public string SomeArg0 { get; set; }
+
+            [Argument(1)]
+            public string[] SomeArg1 { get; set; }
+
+            [Argument(2)]
             public string SomeArg5 { get; set; }
         }
     }

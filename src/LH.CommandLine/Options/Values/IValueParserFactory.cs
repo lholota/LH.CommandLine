@@ -1,6 +1,6 @@
 ﻿namespace LH.CommandLine.Options.Values
 {
-    public partial interface IValueParserFactory
+    public interface IValueParserFactory
     {
         T CreateParser<T>();
     }

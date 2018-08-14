@@ -3,41 +3,32 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using LH.CommandLine.Options.Reflection;
 
-namespace LH.CommandLine.Options.Descriptors
+namespace LH.CommandLine.Options.Metadata
 {
-    internal class OptionProperty
+    internal class OptionPropertyMetadata
     {
-        public static IReadOnlyList<OptionProperty> GetPropertiesForType(Type type)
+        public static IReadOnlyList<OptionPropertyMetadata> GetPropertiesForType(Type type)
         {
-            var result = new List<OptionProperty>();
+            var result = new List<OptionPropertyMetadata>();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (var propertyInfo in properties)
             {
-                OptionProperty optionProperty;
+                var propertyMetadata = new OptionPropertyMetadata(propertyInfo);
 
-                if (IsCollectionType(propertyInfo.PropertyType, out var itemType))
+                if (propertyMetadata.HasPositionalIndex 
+                    || propertyMetadata.Switches.Any() 
+                    || propertyMetadata.OptionAliases.Any())
                 {
-                    optionProperty = new CollectionOptionProperty(propertyInfo, itemType);
-                }
-                else
-                {
-                    optionProperty = new OptionProperty(propertyInfo);
-                }
-
-                if (optionProperty.HasPositionalIndex || optionProperty.Switches.Any() ||
-                    optionProperty.OptionAliases.Any())
-                {
-                    result.Add(optionProperty);
+                    result.Add(propertyMetadata);
                 }
             }
 
             return result;
         }
 
-        internal OptionProperty(PropertyInfo propertyInfo)
+        private OptionPropertyMetadata(PropertyInfo propertyInfo)
         {
             PropertyInfo = propertyInfo;
 
@@ -46,6 +37,7 @@ namespace LH.CommandLine.Options.Descriptors
             InitializePositionalIndex();
             InitializeNamedOptionAliases();
             InitializeCustomParserType();
+            InitializeCollection();
         }
 
         public PropertyInfo PropertyInfo { get; }
@@ -57,7 +49,15 @@ namespace LH.CommandLine.Options.Descriptors
 
         public virtual Type ParsedType
         {
-            get => Type;
+            get
+            {
+                if (IsCollection)
+                {
+                    return CollectionItemType;
+                }
+
+                return Type;
+            }
         }
 
         public string Name
@@ -80,6 +80,10 @@ namespace LH.CommandLine.Options.Descriptors
         public bool HasCustomParser { get; private set; }
 
         public Type CustomParserType { get; private set; }
+
+        public bool IsCollection { get; private set; }
+
+        public Type CollectionItemType { get; private set; }
 
         private void InitializeDefaultValue()
         {
@@ -155,16 +159,19 @@ namespace LH.CommandLine.Options.Descriptors
             }
         }
 
-        private static bool IsCollectionType(Type checkedType, out Type itemType)
+        private void InitializeCollection()
         {
-            if (checkedType.IsArray)
+            if (PropertyInfo.PropertyType == typeof(byte[]))
             {
-                itemType = checkedType.GetElementType();
-                return true;
+                IsCollection = false;
+                return;
             }
 
-            itemType = null;
-            return false;
+            if (PropertyInfo.PropertyType.IsArray)
+            {
+                IsCollection = true;
+                CollectionItemType = PropertyInfo.PropertyType.GetElementType();
+            }
         }
     }
 }

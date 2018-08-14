@@ -1,14 +1,18 @@
-﻿using LH.CommandLine.Options.Descriptors;
-using LH.CommandLine.Options.Reflection;
+﻿using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options
 {
     internal class PropertyValue
     {
-        public PropertyValue(OptionProperty property, object value)
+        public PropertyValue(OptionPropertyMetadata propertyMetadataMetadata, object value)
         {
-
+            PropertyMetadata = propertyMetadataMetadata;
+            Value = value;
         }
+
+        public OptionPropertyMetadata PropertyMetadata { get; }
+
+        public object Value { get; }
 
         //public PropertyValue(PropertyInfo propertyInfo, object value)
         //{

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection;
+using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options
 {
@@ -30,14 +30,26 @@ namespace LH.CommandLine.Options
             _errors.Add($"Invalid option {optionName}");
         }
 
-        public void AddInvalidValueError(PropertyInfo property, string rawValue)
+        public void AddInvalidValueError(OptionPropertyMetadata propertyMetadata, string rawValue)
         {
-            _errors.Add($"The value '{rawValue}' is not valid for the option of type {property.PropertyType}.");
+            _errors.Add($"The value '{rawValue}' is not valid for the option of type {propertyMetadata.ParsedType}.");
         }
 
-        public void AddSpecifiedMultipleTimesError(PropertyInfo propertyInfo)
+        public void AddInvalidValueError(OptionPropertyMetadata propertyMetadata, string[] rawValues)
         {
-            _errors.Add($"The value for the property {propertyInfo.Name} has been specified multiple times.");
+            string valuesString = null;
+
+            if (rawValues != null)
+            {
+                valuesString = string.Join(" ", rawValues);
+            }
+
+            _errors.Add($"One of the values '{valuesString }' is not a valid value of type {propertyMetadata.ParsedType}.");
+        }
+
+        public void AddSpecifiedMultipleTimesError(OptionPropertyMetadata propertyMetadata)
+        {
+            _errors.Add($"The value for the property {propertyMetadata.Name} has been specified multiple times.");
         }
 
         public void AddValidationErrors(IEnumerable<ValidationResult> validationResults)

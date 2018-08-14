@@ -5,7 +5,6 @@ using LH.CommandLine.Options.Values;
 using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Moq;
 using Xunit;
-using IValueParserFactory = LH.CommandLine.Options2.Values.IValueParserFactory;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
 {

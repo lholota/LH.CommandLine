@@ -2,25 +2,24 @@
 using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Extensions;
-using LH.CommandLine.Options.Descriptors;
 using LH.CommandLine.Options.Factoring;
-using LH.CommandLine.Options.Reflection;
+using LH.CommandLine.Options.Metadata;
 using LH.CommandLine.Options.Values;
 
-namespace LH.CommandLine.Options
+namespace LH.CommandLine.Options.Validation
 {
-    internal class OptionsDefinitionValidator<TOptions>
+    internal class OptionsMetadataValidator<TOptions>
     {
-        private readonly OptionsTypeDescriptor _typeDescriptor;
+        private readonly OptionsMetadata _optionsMetadata;
         private readonly IOptionsFactory<TOptions> _optionsFactory;
         private readonly ValueParserSelector _valueParserSelector;
 
-        public OptionsDefinitionValidator(
-            OptionsTypeDescriptor typeDescriptor,
+        public OptionsMetadataValidator(
+            OptionsMetadata optionsMetadata,
             IOptionsFactory<TOptions> optionsFactory,
             ValueParserSelector valueParserSelector)
         {
-            _typeDescriptor = typeDescriptor;
+            _optionsMetadata = optionsMetadata;
             _optionsFactory = optionsFactory;
             _valueParserSelector = valueParserSelector;
         }
@@ -29,7 +28,7 @@ namespace LH.CommandLine.Options
         {
             var errors = new List<string>();
 
-            foreach (var property in _typeDescriptor.Properties)
+            foreach (var property in _optionsMetadata.Properties)
             {
                 ValidateDefaultValue(errors, property);
                 ValidateSwitchValues(errors, property);
@@ -43,11 +42,11 @@ namespace LH.CommandLine.Options
 
             if (errors.Count > 0)
             {
-                throw new InvalidOptionsDefinitionException(_typeDescriptor.OptionsType, errors);
+                throw new InvalidOptionsDefinitionException(_optionsMetadata.OptionsType, errors);
             }
         }
 
-        private void ValidateCanBeParsed(ICollection<string> errors, OptionProperty property)
+        private void ValidateCanBeParsed(ICollection<string> errors, OptionPropertyMetadata property)
         {
             if (!_valueParserSelector.HasParserForProperty(property))
             {
@@ -55,7 +54,7 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private void ValidateDefaultValue(ICollection<string> errors, OptionProperty property)
+        private void ValidateDefaultValue(ICollection<string> errors, OptionPropertyMetadata property)
         {
             if (property.HasDefaultValue)
             {
@@ -69,21 +68,19 @@ namespace LH.CommandLine.Options
             }
         }
 
-        private void ValidateSwitchValues(ICollection<string> errors, OptionProperty property)
+        private void ValidateSwitchValues(ICollection<string> errors, OptionPropertyMetadata property)
         {
-            if (property.HasDefaultValue)
+            foreach (var switchValue in property.Switches.Values)
             {
-                var defaultValueType = property.DefaultValue?.GetType();
-
-                if (!property.Type.IsAssignableFrom(defaultValueType))
+                if (!property.Type.IsInstanceOfType(switchValue.Value))
                 {
                     errors.Add(
-                        $"The default value of type {defaultValueType} cannot be assigned to property of type {property.Type} (property name {property.Name})");
+                        $"The switch value of type {switchValue.Value.GetType()} cannot be assigned to property of type {property.Type} (property name {property.Name})");
                 }
             }
         }
 
-        private void ValidateCustomValueParser(ICollection<string> errors, OptionProperty property)
+        private void ValidateCustomValueParser(ICollection<string> errors, OptionPropertyMetadata property)
         {
             if (!property.HasCustomParser)
             {
@@ -100,7 +97,7 @@ namespace LH.CommandLine.Options
 
         private void ValidatePositionalIndexes(ICollection<string> errors)
         {
-            var indexes = _typeDescriptor.Properties
+            var indexes = _optionsMetadata.Properties
                 .Where(x => x.HasPositionalIndex)
                 .Select(x => x.PositionalIndex)
                 .OrderBy(x => x)
@@ -124,8 +121,8 @@ namespace LH.CommandLine.Options
 
         private void ValidateAliases(ICollection<string> errors)
         {
-            var optionAliases = _typeDescriptor.Properties.SelectMany(x => x.OptionAliases);
-            var switchAliases = _typeDescriptor.Properties.SelectMany(x => x.Switches).Select(x => x.Key);
+            var optionAliases = _optionsMetadata.Properties.SelectMany(x => x.OptionAliases);
+            var switchAliases = _optionsMetadata.Properties.SelectMany(x => x.Switches).Select(x => x.Key);
 
             var groupedAliases = optionAliases
                 .Concat(switchAliases)

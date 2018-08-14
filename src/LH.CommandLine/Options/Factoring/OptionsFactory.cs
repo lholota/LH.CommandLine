@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using LH.CommandLine.Options.Reflection;
+using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options.Factoring
 {
@@ -8,12 +8,12 @@ namespace LH.CommandLine.Options.Factoring
     {
         private readonly IReadOnlyCollection<IOptionsFactory<TOptions>> _strategies;
 
-        public OptionsFactory(OptionsTypeDescriptor typeDescriptor)
+        public OptionsFactory(OptionsMetadata optionsMetadata)
         {
             _strategies = new IOptionsFactory<TOptions>[]
             {
-                new SetterOptionsFactoringStrategy<TOptions>(typeDescriptor),
-                new CtorOptionsFactoringStrategy<TOptions>(typeDescriptor)
+                new SetterOptionsFactoringStrategy<TOptions>(optionsMetadata),
+                new CtorOptionsFactoringStrategy<TOptions>(optionsMetadata)
             };
         }
 
