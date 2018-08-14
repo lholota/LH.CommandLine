@@ -14,7 +14,15 @@ namespace LH.CommandLine.Options.Values
 
         public object Parse(string[] rawValues, OptionPropertyMetadata propertyMetadata)
         {
-            // TODO: Create collection (?)
+            /*
+             * - Create collection
+             *   - Based on property type, find the generic collection type (e.g. List<>)
+             *   - Create an instance of the type with ItemCollectionType as the generic parameter
+             *   - Pass the list of the objects into the constructor
+             *     - If not possible, loop and add them into the collection
+             */
+
+            // TODO: Create collection
 
             throw new NotImplementedException();
         }
