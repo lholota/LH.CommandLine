@@ -1,86 +1,74 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using LH.CommandLine.Options;
+﻿using System.Linq;
+using LH.CommandLine.Options2.Values;
 
 namespace LH.CommandLine.Options2
 {
-    internal class OptionProperty
+    internal abstract class OptionProperty
     {
-        private readonly Type _customParserType;
-        private readonly string[] _optionAliases;
-        private readonly object _defaultValue;
-        private readonly int? _positionalIndex;
-        private readonly IDictionary<string, object> _switches;
+        private readonly IValueParser _valueParser;
+        private readonly OptionPropertyMetadata _propertyMetadata;
 
-        public OptionProperty(PropertyInfo propertyInfo)
+        protected OptionProperty(OptionPropertyMetadata propertyMetadata, ValueParserSelector parserSelector)
         {
-            _optionAliases = GetOptionAliases(propertyInfo);
-            _switches = GetSwitches(propertyInfo);
-            _defaultValue = GetDefaultValue(propertyInfo);
-            _positionalIndex = GetPositionalIndex(propertyInfo);
-            _customParserType = GetCustomParserType(propertyInfo);
+            _propertyMetadata = propertyMetadata;
+            _valueParser = parserSelector.GetParserForProperty(propertyMetadata);
         }
 
-        public bool IsValid(out IEnumerable<string> errors)
+        public bool TryHandleSwitch(string arg)
         {
 
         }
 
-        private string[] GetOptionAliases(PropertyInfo propertyInfo)
+        public bool TryHandlePositional(string arg, int index) // --> If collection, set scope
         {
-            return propertyInfo.GetCustomAttributes<OptionAttribute>()
-                .SelectMany(x => x.Aliases)
-                .ToArray();
+
         }
 
-        private IDictionary<string, object> GetSwitches(PropertyInfo propertyInfo)
+        public bool TryHandleOption(string arg) // If collection, set scope
         {
-            var switches = new Dictionary<string, object>();
-            var switchAttributes = propertyInfo.GetCustomAttributes<SwitchAttribute>();
 
-            foreach (var switchAttribute in switchAttributes)
+        }
+
+
+
+        public bool ParseArg(string arg, int index, out bool setScope)
+        {
+            if (_propertyMetadata.Switches.TryGetValue(arg, out var switchValue))
             {
-                foreach (var alias in switchAttribute.Aliases)
-                {
-                    switches.Add(alias, switchAttribute.Value);
-                }
+                UpdateValue(switchValue);
+                setScope = false;
+
+                return true;
             }
 
-            return switches;
-        }
-
-        private object GetDefaultValue(PropertyInfo propertyInfo)
-        {
-            var defaultValueAttribute = propertyInfo.GetCustomAttribute<DefaultValueAttribute>();
-
-            if (defaultValueAttribute != null)
+            if (_propertyMetadata.HasPositionalIndex && _propertyMetadata.PositionalIndex == index) // Collection sets scope
             {
-                return defaultValueAttribute.Value;
+                var parsedValue = _valueParser.Parse(arg, _propertyMetadata.ParsedType);
+
+                UpdateValue(parsedValue);
+                setScope = false;
+                return true;
             }
 
-            if (propertyInfo.PropertyType.IsValueType)
+            if (_propertyMetadata.OptionAliases.Any(x => x == arg))
             {
-                return Activator.CreateInstance(propertyInfo.PropertyType); // Equivalent of default(T) for value types
+                setScope = true;
+                return true;
             }
 
-            return null;
+            setScope = false;
+            return false;
         }
 
-        private int? GetPositionalIndex(PropertyInfo propertyInfo)
+        public void HandleInScopeArg(string rawValue)
         {
-            var argumentAttribute = propertyInfo.GetCustomAttribute<ArgumentAttribute>();
+            var parsedValue = _valueParser.Parse(rawValue, _propertyMetadata.ParsedType);
 
-            return argumentAttribute?.Index;
+            UpdateValue(parsedValue);
         }
 
-        private Type GetCustomParserType(PropertyInfo propertyInfo)
-        {
-            var valueParserAttribute = propertyInfo.GetCustomAttribute<ValueParserAttribute>();
+        public abstract object GetValue();
 
-            return valueParserAttribute?.ParserType;
-        }
+        protected abstract void UpdateValue(object value);
     }
 }
