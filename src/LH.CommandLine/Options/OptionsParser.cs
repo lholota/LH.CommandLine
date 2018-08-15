@@ -1,5 +1,5 @@
-﻿using System;
-using LH.CommandLine.Exceptions;
+﻿using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
 using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Metadata;
 using LH.CommandLine.Options.Validation;
@@ -8,7 +8,7 @@ using LH.CommandLine.Options.Values;
 namespace LH.CommandLine.Options
 {
     public class OptionsParser<TOptions>
-        where TOptions: class
+        where TOptions : class
     {
         private readonly OptionsMetadata _optionsMetadata;
         private readonly OptionsValidator _optionsValidator;
@@ -42,7 +42,7 @@ namespace LH.CommandLine.Options
             {
                 if (_optionsMetadata.TryGetSwitchValueByName(args[i], out var switchValue))
                 {
-                    parsingContext.AddValue(switchValue.PropertyMetadata, switchValue.Value);
+                    parsingContext.SetValue(switchValue.PropertyMetadata, switchValue.Value);
                     continue;
                 }
 
@@ -60,22 +60,25 @@ namespace LH.CommandLine.Options
                     continue;
                 }
 
-                if (i + 1 < args.Length)
+                if (_optionsMetadata.TryGetPropertyByOptionName(args[i], out matchingProperty))
                 {
-                    if (_optionsMetadata.TryGetPropertyByOptionName(args[i], out matchingProperty))
+                    if (i + 1 >= args.Length || _optionsMetadata.IsKeyword(args[i + 1]))
                     {
-                        if (matchingProperty.IsCollection)
-                        {
-                            i++; // Skip the option name
-                            ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
-                        }
-                        else
-                        {
-                            ParseAndSetValue(parsingContext, matchingProperty, args[i + 1]);
-                            i++;
-                        }
+                        parsingContext.AddOptionWithoutValueError(args[i]);
                         continue;
                     }
+
+                    if (matchingProperty.IsCollection)
+                    {
+                        i++; // Skip the option name
+                        ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
+                    }
+                    else
+                    {
+                        ParseAndSetValue(parsingContext, matchingProperty, args[i + 1]);
+                        i++;
+                    }
+                    continue;
                 }
 
                 parsingContext.AddInvalidOptionError(args[i]);
@@ -96,7 +99,8 @@ namespace LH.CommandLine.Options
 
         private void ParseAndSetCollectionValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string[] args, ref int index)
         {
-            var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
+            var startIndex = index;
+            var valueCount = 0;
 
             while (index < args.Length)
             {
@@ -106,41 +110,20 @@ namespace LH.CommandLine.Options
                     break;
                 }
 
-                try
-                {
-                    var parsedValue = parser.Parse(args[index], propertyMetadata.ParsedType);
-                    context.AddValue(propertyMetadata, parsedValue);
-                }
-                catch (DuplicateValueException)
-                {
-                    context.AddSpecifiedMultipleTimesError(propertyMetadata);
-                }
-                catch (Exception)
-                {
-                    context.AddInvalidValueError(propertyMetadata, args[index]);
-                }
-
+                valueCount++;
                 index++;
             }
+
+            var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
+            var rawValues = args.GetArraySubset(startIndex, valueCount);
+
+            context.SetCollectionValue(propertyMetadata, rawValues, parser);
         }
 
         private void ParseAndSetValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string rawValue)
         {
             var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
-
-            try
-            {
-                var parsedValue = parser.Parse(rawValue, propertyMetadata.Type);
-                context.AddValue(propertyMetadata, parsedValue);
-            }
-            catch (DuplicateValueException)
-            {
-                context.AddSpecifiedMultipleTimesError(propertyMetadata);
-            }
-            catch (Exception)
-            {
-                context.AddInvalidValueError(propertyMetadata, rawValue);
-            }
+            context.SetValue(propertyMetadata, rawValue, parser);
         }
     }
 }

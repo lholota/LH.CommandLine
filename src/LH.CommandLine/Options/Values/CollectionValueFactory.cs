@@ -2,32 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options.Values
 {
-    internal class CollectionParser : ICollectionValueParser
+    internal class CollectionValueFactory
     {
-        private readonly IValueParser _innerParser;
-
-        public CollectionParser(IValueParser innerParser)
+        public object CreateCollection(IReadOnlyList<object> items, OptionPropertyMetadata propertyMetadata)
         {
-            _innerParser = innerParser;
-        }
-
-        public object Parse(string[] rawValues, OptionPropertyMetadata propertyMetadata)
-        {
-            var items = rawValues
-                .Select(rawValue => _innerParser.Parse(rawValue, propertyMetadata.ParsedType))
-                .ToArray();
-
             if (propertyMetadata.CollectionType == typeof(Array))
             {
                 var arrayType = propertyMetadata.ParsedType.MakeArrayType();
-                var array = (Array)Activator.CreateInstance(arrayType, items.Length);
+                var array = (Array)Activator.CreateInstance(arrayType, items.Count);
 
-                Array.Copy(items, array, items.Length);
+                for (int i = 0; i < items.Count; i++)
+                {
+                    array.SetValue(items[i], i);
+                }
 
                 return array;
             }

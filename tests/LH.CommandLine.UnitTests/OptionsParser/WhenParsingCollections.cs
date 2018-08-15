@@ -89,15 +89,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldParseSwitchOnCollectionsWhichShouldAddValueToTheList()
-        {
-            var parser = new OptionsParser<OptionsWithCollectionSwitches>();
-            var options = parser.Parse(new[] { "--one", "--two" });
-
-            Assert.Equal(new[] { 1, 2 }, options.Numbers);
-        }
-
-        [Fact]
         public void ShouldParseCollectionWithCustomParser()
         {
             var parser = new OptionsParser<OptionsWithCollectionWithCustomParser>();
@@ -107,12 +98,12 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldThrowIfCollectionOptionSpecifiedWithoutValue()
+        public void ShouldThrowWhenCollectionOptionSpecifiedWithoutValue()
         {
             var parser = new OptionsParser<OptionsWithIEnumerableOfInts>();
-            var options = parser.Parse(new[] { "--numbers" });
 
-            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers); // TODO: Verify the exception message, it should be improved
+            Assert.Throws<InvalidOptionsException>(
+                () => parser.Parse(new[] {"--numbers"}));
         }
 
         [Fact]
@@ -135,12 +126,12 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldThrowWhenSwitchSpecifiedMultipleTimes()
+        public void ShouldThrowWhenMultipleSwitchesForTheSamePropertySpecified()
         {
             var parser = new OptionsParser<OptionsWithCollectionSwitches>();
 
             Assert.Throws<InvalidOptionsException>(
-                () => parser.Parse(new[] { "--one", "--one" }));
+                () => parser.Parse(new[] { "--one", "--two" }));
         }
     }
 }

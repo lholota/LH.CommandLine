@@ -5,7 +5,7 @@ using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
 {
-    public class WhenParsingUsingInvalidOptionsDefinition
+    public class WhenParsingUsingInvalidOptionsMetadata
     {
         [Fact]
         public void ShouldThrowWhenMultipleOptionsHaveSameName()
@@ -18,7 +18,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenMultipleOptionAndSwitchHaveSameName()
         {
-            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithSwitchSharingNameWithNamedOption>();
+            var parser = new OptionsParser<WhenParsingUsingInvalidOptionsDefinition.OptionsWithSwitchSharingNameWithNamedOption>();
 
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
@@ -42,7 +42,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenPositionalArgsIndexDontStartWithZero()
         {
-            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithOnlyNonZeroPositionalArgs>();
+            var parser = new OptionsParser<WhenParsingUsingInvalidOptionsDefinition.OptionsWithOnlyNonZeroPositionalArgs>();
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 

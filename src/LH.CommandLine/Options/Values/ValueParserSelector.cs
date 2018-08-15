@@ -31,13 +31,6 @@ namespace LH.CommandLine.Options.Values
             return DefaultParsers.GetValueParser(optionProperty.ParsedType);
         }
 
-        public ICollectionValueParser GetParserForCollectionProperty(OptionPropertyMetadata optionProperty)
-        {
-            var innerParser = GetParserForProperty(optionProperty);
-
-            return new CollectionParser(innerParser);
-        }
-
         private IValueParser CreateExternalParser(Type parserType)
         {
             var factoryType = _valueParserFactory.GetType();

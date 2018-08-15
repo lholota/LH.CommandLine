@@ -1,17 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options.Metadata;
+using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
 {
     internal class OptionsParsingContext
     {
         private readonly List<string> _errors;
+        private readonly CollectionValueFactory _collectionValueFactory;
         private readonly IDictionary<OptionPropertyMetadata, IOptionValue> _values;
 
         public OptionsParsingContext(OptionsMetadata optionsMetadata)
         {
+            _collectionValueFactory = new CollectionValueFactory();
             _values = CreateInitialValues(optionsMetadata);
             _errors = new List<string>();
         }
@@ -26,9 +31,56 @@ namespace LH.CommandLine.Options
             get => Errors.Any();
         }
 
-        public void AddValue(OptionPropertyMetadata propertyMetadata, object value)
+        public void SetValue(OptionPropertyMetadata propertyMetadata, object value)
         {
-            _values[propertyMetadata].AddValue(value);
+            try
+            {
+                _values[propertyMetadata].AddValue(value);
+            }
+            catch (DuplicateValueException)
+            {
+                AddSpecifiedMultipleTimesError(propertyMetadata);
+            }
+        }
+
+        public void SetValue(OptionPropertyMetadata propertyMetadata, string rawValue, IValueParser valueParser)
+        {
+            object parsedValue;
+
+            try
+            {
+                parsedValue = valueParser.Parse(rawValue, propertyMetadata.ParsedType);
+            }
+            catch (Exception)
+            {
+                AddInvalidValueError(propertyMetadata, rawValue);
+                return;
+            }
+
+            SetValue(propertyMetadata, parsedValue);
+        }
+
+        public void SetCollectionValue(OptionPropertyMetadata propertyMetadata, string[] rawValues, IValueParser valueParser)
+        {
+            var parsedValues = new List<object>();
+
+            foreach (var rawValue in rawValues)
+            {
+                try
+                {
+                    var parsedValue = valueParser.Parse(rawValue, propertyMetadata.ParsedType);
+
+                    parsedValues.Add(parsedValue);
+                }
+                catch (Exception)
+                {
+                    AddInvalidValueError(propertyMetadata, rawValue);
+                }
+            }
+
+            var collection = _collectionValueFactory.CreateCollection(parsedValues, propertyMetadata);
+
+            SetValue(propertyMetadata, collection);
         }
 
         public void AddInvalidOptionError(string optionName)
@@ -53,6 +105,11 @@ namespace LH.CommandLine.Options
             _errors.AddRange(errorMessages);
         }
 
+        public void AddOptionWithoutValueError(string optionName)
+        {
+            _errors.Add($"The option '{optionName}' was specified without a value.");
+        }
+
         public IReadOnlyCollection<PropertyValue> GetValues()
         {
             return _values
@@ -66,16 +123,7 @@ namespace LH.CommandLine.Options
 
             foreach (var property in optionsMetadata.Properties)
             {
-                IOptionValue value;
-
-                if (property.IsCollection)
-                {
-                    value = new OptionCollectionValue(property);
-                }
-                else
-                {
-                    value = new OptionValue(property);
-                }
+                var value = new OptionValue(property);
 
                 result.Add(property, value);
             }
