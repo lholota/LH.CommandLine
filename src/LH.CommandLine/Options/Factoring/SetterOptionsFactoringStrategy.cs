@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using LH.CommandLine.Extensions;
+using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options.Factoring
 {
     internal class SetterOptionsFactoringStrategy<TOptions> : IOptionsFactory<TOptions>
     {
-        private readonly OptionsTypeDescriptor _typeDescriptor;
+        private readonly OptionsMetadata _optionMetadata;
 
-        public SetterOptionsFactoringStrategy(OptionsTypeDescriptor typeDescriptor)
+        public SetterOptionsFactoringStrategy(OptionsMetadata optionMetadata)
         {
-            _typeDescriptor = typeDescriptor;
+            _optionMetadata = optionMetadata;
         }
 
         public bool CanCreateOptions()
         {
-            if (!_typeDescriptor.OptionsType.HasParameterlessConstructor())
+            if (!_optionMetadata.OptionsType.HasParameterlessConstructor())
             {
                 return false;
             }
 
-            foreach (var property in _typeDescriptor.Properties)
+            foreach (var property in _optionMetadata.Properties)
             {
-                var setter = property.GetSetMethod();
+                var setter = property.PropertyInfo.GetSetMethod();
 
                 if (setter == null || !setter.IsPublic)
                 {
@@ -39,7 +40,7 @@ namespace LH.CommandLine.Options.Factoring
 
             foreach (var propertyValue in values)
             {
-                propertyValue.PropertyInfo.SetValue(options, propertyValue.Value);
+                propertyValue.PropertyMetadata.PropertyInfo.SetValue(options, propertyValue.Value);
             }
 
             return options;

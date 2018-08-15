@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LH.CommandLine.Options
+namespace LH.CommandLine
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ValueParserAttribute : Attribute

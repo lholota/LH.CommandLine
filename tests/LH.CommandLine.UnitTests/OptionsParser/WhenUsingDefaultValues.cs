@@ -1,6 +1,8 @@
 ﻿using System;
 using LH.CommandLine.Options;
 using System.ComponentModel;
+using LH.CommandLine.Options.Values;
+using LH.CommandLine.UnitTests.OptionsParser.Options;
 using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
@@ -29,7 +31,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
-        public void ShouldReturnDefaultValue_WhenDefaultValueIsOfAssignableType()
+        public void ShouldReturnDefaultValue_WhenDefaultValueIsOfDerivedType()
         {
             var parser = new OptionsParser<OptionsWithDerivedDefaultValue>();
             var options = parser.Parse(new string[0]);
@@ -37,11 +39,30 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Equal(32, options.PropertyA);
         }
 
+        [Fact]
+        [DefaultValue(32)]
+        public void ShouldReturnDefaultValue_WhenCollectionOptionNotSpecified()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionWithDefaultValue>();
+            var options = parser.Parse(new string[0]);
+
+            Assert.Equal(new[] { "Default" }, options.Strings);
+        }
+
         private class OptionsWithDerivedDefaultValue
         {
             [DefaultValue(32)] // Int32
             [Option("some-option")]
+            [ValueParser(typeof(DummyParser))]
             public IComparable PropertyA { get; set; }
+
+            private class DummyParser : ValueParserBase<IComparable>
+            {
+                public override IComparable Parse(string rawValue)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
 
         public class OptionsWithDefaults

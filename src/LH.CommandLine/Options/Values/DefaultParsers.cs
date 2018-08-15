@@ -21,6 +21,16 @@ namespace LH.CommandLine.Options.Values
             { typeof(byte[]), new HexByteArrayParser() }
         };
 
+        public static bool HasParser(Type targetType)
+        {
+            if (targetType.IsEnum)
+            {
+                return true;
+            }
+
+            return Parsers.ContainsKey(targetType);
+        }
+
         public static IValueParser GetValueParser(Type targetType)
         {
             if (targetType.IsEnum)

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
 {
-    public class WhenParsingUsingInvalidOptionsDefinition
+    public class WhenParsingUsingInvalidOptionsMetadata
     {
         [Fact]
         public void ShouldThrowWhenMultipleOptionsHaveSameName()
@@ -18,7 +18,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenMultipleOptionAndSwitchHaveSameName()
         {
-            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithSwitchSharingNameWithNamedOption>();
+            var parser = new OptionsParser<WhenParsingUsingInvalidOptionsDefinition.OptionsWithSwitchSharingNameWithNamedOption>();
 
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
@@ -42,7 +42,7 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldThrowWhenPositionalArgsIndexDontStartWithZero()
         {
-            var parser = new OptionsParser<Options.WhenParsingUsingInvalidOptionsDefinition.OptionsWithOnlyNonZeroPositionalArgs>();
+            var parser = new OptionsParser<WhenParsingUsingInvalidOptionsDefinition.OptionsWithOnlyNonZeroPositionalArgs>();
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
@@ -57,6 +57,20 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         public void ShouldThrowWhenCustomValueParserDoesNotImplementInterface()
         {
             var parser = new OptionsParser<OptionsWithCustomValueParserWithInvalidInterface>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
+        [Fact]
+        public void ShouldThrowWhenCollectionIsNotLastPositional()
+        {
+            var parser = new OptionsParser<OptionsWithCollectionPositionalWhichIsNotLast>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
+        [Fact]
+        public void ShouldThrowWhenMultipleCollectionsArePositions()
+        {
+            var parser = new OptionsParser<OptionsWithMultiplePositionalCollections>();
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
@@ -85,6 +99,27 @@ namespace LH.CommandLine.UnitTests.OptionsParser
 
             [Argument(5)]
             public string SomeArg5 { get; set; }
+        }
+
+        private class OptionsWithCollectionPositionalWhichIsNotLast
+        {
+            [Argument(0)]
+            public string SomeArg0 { get; set; }
+
+            [Argument(1)]
+            public string[] SomeArg1 { get; set; }
+
+            [Argument(2)]
+            public string SomeArg5 { get; set; }
+        }
+
+        private class OptionsWithMultiplePositionalCollections
+        {
+            [Argument(0)]
+            public string[] SomeArg0 { get; set; }
+
+            [Argument(1)]
+            public string[] SomeArg1 { get; set; }
         }
     }
 }

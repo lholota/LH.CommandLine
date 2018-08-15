@@ -1,35 +1,34 @@
 ﻿using System;
 using System.Reflection;
 using LH.CommandLine.Exceptions;
+using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options.Values
 {
     internal class ValueParserSelector
     {
-        private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly IValueParserFactory _valueParserFactory;
 
-        public ValueParserSelector(
-            OptionsTypeDescriptor typeDescriptor,
-            IValueParserFactory valueParserFactory)
+        public ValueParserSelector(IValueParserFactory valueParserFactory)
         {
-            _typeDescriptor = typeDescriptor;
             _valueParserFactory = valueParserFactory;
         }
 
-        public bool HasParserForProperty(PropertyInfo propertyInfo)
+        public bool HasParserForProperty(OptionPropertyMetadata propertyMetadata)
         {
-            return GetParserForProperty(propertyInfo) != null;
+            return propertyMetadata.HasCustomParser
+                   || propertyMetadata.IsCollection
+                   || DefaultParsers.HasParser(propertyMetadata.ParsedType);
         }
 
-        public IValueParser GetParserForProperty(PropertyInfo propertyInfo)
+        public IValueParser GetParserForProperty(OptionPropertyMetadata optionProperty)
         {
-            if (_typeDescriptor.TryFindValueParserOverrideType(propertyInfo, out var parserType))
+            if (optionProperty.HasCustomParser)
             {
-                return CreateExternalParser(parserType);
+                return CreateExternalParser(optionProperty.CustomParserType);
             }
 
-            return DefaultParsers.GetValueParser(propertyInfo.PropertyType);
+            return DefaultParsers.GetValueParser(optionProperty.ParsedType);
         }
 
         private IValueParser CreateExternalParser(Type parserType)

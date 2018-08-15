@@ -4,7 +4,7 @@ using Xunit;
 
 namespace LH.CommandLine.UnitTests.OptionsParser
 {
-    public class WhenParsingInvalidValues
+    public class WhenParsingInvalidOptions
     {
         [Fact]
         public void ThrowWhenNamedOptionUsedAsSwitchWithFollowingOptions()
@@ -20,8 +20,21 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         {
             var parser = new OptionsParser<OptionsWithNamed>();
 
-            Assert.Throws<InvalidOptionsException>(
+            var exception = Assert.Throws<InvalidOptionsException>(
                 () => parser.Parse(new[] { "--value", "value1", "--value", "value2" }));
+
+            Assert.Contains(exception.Errors, error => error.Contains("multiple"));
+        }
+
+        [Fact]
+        public void ThrowWhenOptionIsUnknown()
+        {
+            var parser = new OptionsParser<OptionsWithNamed>();
+
+            var exception = Assert.Throws<InvalidOptionsException>(
+                () => parser.Parse(new[] { "--some-unknown-option", "--value", "some-value" }));
+
+            Assert.Contains(exception.Errors, error => error.Contains("some-unknown-option"));
         }
 
         private class OptionsWithNamed

@@ -1,28 +1,28 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using LH.CommandLine.Exceptions;
+﻿using LH.CommandLine.Exceptions;
+using LH.CommandLine.Extensions;
 using LH.CommandLine.Options.Factoring;
+using LH.CommandLine.Options.Metadata;
+using LH.CommandLine.Options.Validation;
 using LH.CommandLine.Options.Values;
 
 namespace LH.CommandLine.Options
 {
     public class OptionsParser<TOptions>
-        where TOptions: class
+        where TOptions : class
     {
+        private readonly OptionsMetadata _optionsMetadata;
         private readonly OptionsValidator _optionsValidator;
-        private readonly OptionsTypeDescriptor _typeDescriptor;
         private readonly OptionsFactory<TOptions> _optionsFactory;
-        private readonly OptionsDefinitionValidator<TOptions> _optionsDefinitionValidator;
         private readonly ValueParserSelector _valueParserSelector;
+        private readonly OptionsMetadataValidator<TOptions> _optionsMetadataValidator;
 
         public OptionsParser(IValueParserFactory valueParserFactory)
         {
-            _typeDescriptor = new OptionsTypeDescriptor(typeof(TOptions));
-            _optionsFactory = new OptionsFactory<TOptions>(_typeDescriptor);
+            _optionsMetadata = new OptionsMetadata(typeof(TOptions));
+            _optionsFactory = new OptionsFactory<TOptions>(_optionsMetadata);
+            _valueParserSelector = new ValueParserSelector(valueParserFactory);
+            _optionsMetadataValidator = new OptionsMetadataValidator<TOptions>(_optionsMetadata, _optionsFactory, _valueParserSelector);
             _optionsValidator = new OptionsValidator();
-            _optionsDefinitionValidator = new OptionsDefinitionValidator<TOptions>(_typeDescriptor, _optionsFactory);
-            _valueParserSelector = new ValueParserSelector(_typeDescriptor, valueParserFactory);
         }
 
         public OptionsParser()
@@ -32,76 +32,98 @@ namespace LH.CommandLine.Options
 
         public TOptions Parse(string[] args)
         {
-            _optionsDefinitionValidator.Validate();
+            _optionsMetadataValidator.Validate();
 
-            var errorsCollection = new OptionsParsingErrors();
-            var optionsValues = new OptionsValues(_typeDescriptor);
+            OptionPropertyMetadata matchingProperty;
+
+            var parsingContext = new OptionsParsingContext(_optionsMetadata);
 
             for (var i = 0; i < args.Length; i++)
             {
-                if (_typeDescriptor.TryFindSwitchValue(args[i], out var switchValue))
+                if (_optionsMetadata.TryGetSwitchValueByName(args[i], out var switchValue))
                 {
-                    optionsValues.SetValue(switchValue);
+                    parsingContext.SetValue(switchValue.PropertyMetadata, switchValue.Value);
                     continue;
                 }
 
-                if (_typeDescriptor.TryFindPropertyByPositionalIndex(i, out var positionalProperty))
+                if (_optionsMetadata.TryGetPropertyByIndex(i, out matchingProperty))
                 {
-                    ParseAndSetValue(errorsCollection, optionsValues, positionalProperty, args[i]);
-                    continue;
-                }
-
-                if (i + 1 < args.Length)
-                {
-                    if (_typeDescriptor.TryFindPropertyByOptionName(args[i], out var namedOptionProperty))
+                    if (matchingProperty.IsCollection)
                     {
-                        ParseAndSetValue(errorsCollection, optionsValues, namedOptionProperty, args[i + 1]);
+                        ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
+                    }
+                    else
+                    {
+                        ParseAndSetValue(parsingContext, matchingProperty, args[i]);
+                    }
 
-                        i++;
+                    continue;
+                }
+
+                if (_optionsMetadata.TryGetPropertyByOptionName(args[i], out matchingProperty))
+                {
+                    if (i + 1 >= args.Length || _optionsMetadata.IsKeyword(args[i + 1]))
+                    {
+                        parsingContext.AddOptionWithoutValueError(args[i]);
                         continue;
                     }
+
+                    if (matchingProperty.IsCollection)
+                    {
+                        i++; // Skip the option name
+                        ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
+                    }
+                    else
+                    {
+                        ParseAndSetValue(parsingContext, matchingProperty, args[i + 1]);
+                        i++;
+                    }
+                    continue;
                 }
 
-                errorsCollection.AddInvalidOptionError(args[i]);
+                parsingContext.AddInvalidOptionError(args[i]);
             }
 
-            var options = _optionsFactory.CreateOptions(optionsValues);
-
+            var options = _optionsFactory.CreateOptions(parsingContext.GetValues());
             var validationErrors = _optionsValidator.ValidateOptions(options);
-            errorsCollection.AddValidationErrors(validationErrors);
 
-            if (errorsCollection.Any())
+            parsingContext.AddValidationErrors(validationErrors);
+
+            if (parsingContext.HasErrors)
             {
-                throw new InvalidOptionsException(errorsCollection);
+                throw new InvalidOptionsException(parsingContext.Errors);
             }
 
             return options;
         }
 
-        private void ParseAndSetValue(OptionsParsingErrors errors, OptionsValues values, PropertyInfo propertyInfo, string rawValue)
+        private void ParseAndSetCollectionValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string[] args, ref int index)
         {
-            object parsedValue;
+            var startIndex = index;
+            var valueCount = 0;
 
-            var parser = _valueParserSelector.GetParserForProperty(propertyInfo);
+            while (index < args.Length)
+            {
+                if (_optionsMetadata.IsKeyword(args[index]))
+                {
+                    index--;
+                    break;
+                }
 
-            try
-            {
-                parsedValue = parser.Parse(rawValue, propertyInfo.PropertyType);
-            }
-            catch (Exception)
-            {
-                errors.AddInvalidValueError(propertyInfo, rawValue);
-                return;
+                valueCount++;
+                index++;
             }
 
-            try
-            {
-                values.SetValue(propertyInfo, parsedValue);
-            }
-            catch (DuplicateValueException)
-            {
-                errors.AddSpecifiedMultipleTimesError(propertyInfo);
-            }
+            var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
+            var rawValues = args.GetArraySubset(startIndex, valueCount);
+
+            context.SetCollectionValue(propertyMetadata, rawValues, parser);
+        }
+
+        private void ParseAndSetValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string rawValue)
+        {
+            var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
+            context.SetValue(propertyMetadata, rawValue, parser);
         }
     }
 }

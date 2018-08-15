@@ -1,43 +1,52 @@
-﻿using System;
-using System.Reflection;
+﻿using LH.CommandLine.Options.Metadata;
 
 namespace LH.CommandLine.Options
 {
     internal class PropertyValue
     {
-        public PropertyValue(PropertyInfo propertyInfo, object value)
+        public PropertyValue(OptionPropertyMetadata propertyMetadataMetadata, object value)
         {
-            PropertyInfo = propertyInfo;
+            PropertyMetadata = propertyMetadataMetadata;
             Value = value;
         }
 
-        public PropertyInfo PropertyInfo { get; }
+        public OptionPropertyMetadata PropertyMetadata { get; }
 
         public object Value { get; }
 
-        public Type ValueType
-        {
-            get => Value?.GetType();
-        }
+        //public PropertyValue(PropertyInfo propertyInfo, object value)
+        //{
+        //    PropertyInfo = propertyInfo;
+        //    Value = value;
+        //}
 
-        public Type PropertyType
-        {
-            get => PropertyInfo.PropertyType;
-        }
+        //public PropertyInfo PropertyInfo { get; }
 
-        public string PropertyName
-        {
-            get => PropertyInfo.Name;
-        }
+        //public object Value { get; }
 
-        public bool IsValid()
-        {
-            if (Value == null)
-            {
-                return PropertyType.IsByRef;
-            }
+        //public Type ValueType
+        //{
+        //    get => Value?.GetType();
+        //}
 
-            return PropertyType.IsAssignableFrom(ValueType);
-        }
+        //public Type PropertyType
+        //{
+        //    get => PropertyInfo.PropertyType;
+        //}
+
+        //public string PropertyName
+        //{
+        //    get => PropertyInfo.Name;
+        //}
+
+        //public bool IsValid()
+        //{
+        //    if (Value == null)
+        //    {
+        //        return PropertyType.IsByRef;
+        //    }
+
+        //    return PropertyType.IsAssignableFrom(ValueType);
+        //}
     }
 }
