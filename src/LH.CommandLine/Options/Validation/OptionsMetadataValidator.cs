@@ -36,6 +36,7 @@ namespace LH.CommandLine.Options.Validation
                 ValidateCanBeParsed(errors, property);
             }
 
+            ValidateOnlyLastPositionalCanBeCollection(errors);
             ValidateOptionsCanBeConstruted(errors);
             ValidatePositionalIndexes(errors);
             ValidateAliases(errors);
@@ -142,6 +143,40 @@ namespace LH.CommandLine.Options.Validation
             if (!_optionsFactory.CanCreateOptions())
             {
                 errors.Add($"Cannot create an instance of type {typeof(TOptions)}. The options must be either a type with a parameterless constructor and public setters or a type with constructor parameters for all properties.");
+            }
+        }
+
+        private void ValidateOnlyLastPositionalCanBeCollection(ICollection<string> errors)
+        {
+            var maxIndex = -1;
+            var collectionIndex = -1;
+
+            foreach (var propertyMetadata in _optionsMetadata.Properties)
+            {
+                if (!propertyMetadata.HasPositionalIndex)
+                {
+                    continue;
+                }
+
+                if (maxIndex < propertyMetadata.PositionalIndex)
+                {
+                    maxIndex = propertyMetadata.PositionalIndex;
+                }
+
+                if (propertyMetadata.IsCollection)
+                {
+                    if (collectionIndex != -1)
+                    {
+                        errors.Add("Only one Argument can be a collection.");
+                    }
+
+                    collectionIndex = propertyMetadata.PositionalIndex;
+                }
+            }
+
+            if (collectionIndex != -1 && collectionIndex < maxIndex)
+            {
+                errors.Add("Only the Argument with the highest index can be a collection.");
             }
         }
     }

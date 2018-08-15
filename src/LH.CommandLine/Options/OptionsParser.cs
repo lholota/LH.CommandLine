@@ -37,6 +37,7 @@ namespace LH.CommandLine.Options
 
             var errorsCollection = new OptionsParsingErrors();
             var optionsValues = new OptionsValues(_optionsMetadata);
+            OptionPropertyMetadata matchingProperty;
 
             for (var i = 0; i < args.Length; i++)
             {
@@ -46,15 +47,15 @@ namespace LH.CommandLine.Options
                     continue;
                 }
 
-                if (_optionsMetadata.TryGetPropertyByIndex(i, out var positionalProperty))
+                if (_optionsMetadata.TryGetPropertyByIndex(i, out matchingProperty))
                 {
-                    if (positionalProperty.IsCollection)
+                    if (matchingProperty.IsCollection)
                     {
-                        ParseAndSetCollectionValue(errorsCollection, optionsValues, positionalProperty, args, ref i);
+                        ParseAndSetCollectionValue(errorsCollection, optionsValues, matchingProperty, args, ref i);
                     }
                     else
                     {
-                        ParseAndSetValue(errorsCollection, optionsValues, positionalProperty, args[i]);
+                        ParseAndSetValue(errorsCollection, optionsValues, matchingProperty, args[i]);
                     }
 
                     continue;
@@ -62,16 +63,16 @@ namespace LH.CommandLine.Options
 
                 if (i + 1 < args.Length)
                 {
-                    if (_optionsMetadata.TryGetPropertyByOptionName(args[i], out var namedOptionProperty))
+                    if (_optionsMetadata.TryGetPropertyByOptionName(args[i], out matchingProperty))
                     {
-                        if (namedOptionProperty.IsCollection)
+                        if (matchingProperty.IsCollection)
                         {
                             i++; // Skip the option name
-                            ParseAndSetCollectionValue(errorsCollection, optionsValues, positionalProperty, args, ref i);
+                            ParseAndSetCollectionValue(errorsCollection, optionsValues, matchingProperty, args, ref i);
                         }
                         else
                         {
-                            ParseAndSetValue(errorsCollection, optionsValues, namedOptionProperty, args[i + 1]);
+                            ParseAndSetValue(errorsCollection, optionsValues, matchingProperty, args[i + 1]);
                             i++;
                         }
                         continue;
@@ -98,12 +99,13 @@ namespace LH.CommandLine.Options
         {
             var itemsStartIndex = index;
 
-            while (!_optionsMetadata.IsKeyword(args[index]) && index < args.Length)
+            // + 1 is used to peek one value ahead. The first item is always a collection item (?)
+            while (index + 1 < args.Length && !_optionsMetadata.IsKeyword(args[index + 1]))
             {
                 index++;
             }
 
-            var length = index - itemsStartIndex;
+            var length = index - itemsStartIndex + 1;
             var rawValues = new string[length];
             Array.Copy(args, itemsStartIndex, rawValues, 0, length);
 
@@ -114,7 +116,7 @@ namespace LH.CommandLine.Options
             {
                 parsedValue = parser.Parse(rawValues, propertyMetadata);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 errors.AddInvalidValueError(propertyMetadata, rawValues);
                 return;
@@ -140,7 +142,7 @@ namespace LH.CommandLine.Options
             {
                 parsedValue = parser.Parse(rawValue, propertyMetadata.Type);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 errors.AddInvalidValueError(propertyMetadata, rawValue);
                 return;

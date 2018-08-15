@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -84,6 +85,8 @@ namespace LH.CommandLine.Options.Metadata
         public bool IsCollection { get; private set; }
 
         public Type CollectionItemType { get; private set; }
+
+        public Type CollectionType { get; private set; }
 
         private void InitializeDefaultValue()
         {
@@ -170,7 +173,43 @@ namespace LH.CommandLine.Options.Metadata
             if (PropertyInfo.PropertyType.IsArray)
             {
                 IsCollection = true;
+                CollectionType = typeof(Array);
                 CollectionItemType = PropertyInfo.PropertyType.GetElementType();
+
+                return;
+            }
+
+            if (PropertyInfo.PropertyType.IsConstructedGenericType)
+            {
+                var genericType = PropertyInfo.PropertyType.GetGenericTypeDefinition();
+                var genericArgs = PropertyInfo.PropertyType.GetGenericArguments();
+
+                if (genericType == typeof(IList<>)
+                    || genericType == typeof(IEnumerable<>)
+                    || genericType == typeof(IReadOnlyList<>)
+                    || genericType == typeof(ICollection<>)
+                    || genericType == typeof(IReadOnlyCollection<>))
+                {
+                    IsCollection = true;
+                    CollectionItemType = genericArgs[0];
+                    CollectionType = typeof(Array);
+
+                    return;
+                }
+
+                if (genericType == typeof(List<>))
+                {
+                    IsCollection = true;
+                    CollectionItemType = genericArgs[0];
+                    CollectionType = typeof(List<>);
+                }
+
+                if (genericType == typeof(Collection<>))
+                {
+                    IsCollection = true;
+                    CollectionItemType = genericArgs[0];
+                    CollectionType = typeof(Collection<>);
+                }
             }
         }
     }

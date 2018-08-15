@@ -17,6 +17,7 @@ namespace LH.CommandLine.Options.Values
         public bool HasParserForProperty(OptionPropertyMetadata propertyMetadata)
         {
             return propertyMetadata.HasCustomParser
+                   || propertyMetadata.IsCollection
                    || DefaultParsers.HasParser(propertyMetadata.ParsedType);
         }
 

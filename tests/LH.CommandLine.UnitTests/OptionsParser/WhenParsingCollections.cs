@@ -44,6 +44,15 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         }
 
         [Fact]
+        public void ShouldParseICollectionOfIntegers()
+        {
+            var parser = new OptionsParser<OptionsWithICollectionOfInts>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3" });
+
+            Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
+        }
+
+        [Fact]
         public void ShouldParseReadOnlyListOfIntegers()
         {
             var parser = new OptionsParser<OptionsWithReadOnlyListOfInts>();
@@ -118,8 +127,8 @@ namespace LH.CommandLine.UnitTests.OptionsParser
         [Fact]
         public void ShouldNotIncludeNextNamedOptionIntoCollection()
         {
-            var parser = new OptionsParser<OptionsWithArrayOfInts>();
-            var options = parser.Parse(new[] { "--numbers", "1", "2", "3", "--strings", "some-value" });
+            var parser = new OptionsParser<OptionsWithArrayOfIntsAndStringOption>();
+            var options = parser.Parse(new[] { "--numbers", "1", "2", "3", "--string", "some-value" });
 
             Assert.Equal(new[] { 1, 2, 3 }, options.Numbers);
             Assert.Equal("some-value", options.String);

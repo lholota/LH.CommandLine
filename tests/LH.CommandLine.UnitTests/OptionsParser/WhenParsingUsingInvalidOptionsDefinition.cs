@@ -67,6 +67,14 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
+        [Fact]
+        public void ShouldThrowWhenMultipleCollectionsArePositions()
+        {
+            var parser = new OptionsParser<OptionsWithMultiplePositionalCollections>();
+            Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
+        }
+
+
         private class OptionsWithInvalidSwitchValue
         {
             [Switch("some-switch", Value = 32)]
@@ -104,6 +112,15 @@ namespace LH.CommandLine.UnitTests.OptionsParser
 
             [Argument(2)]
             public string SomeArg5 { get; set; }
+        }
+
+        private class OptionsWithMultiplePositionalCollections
+        {
+            [Argument(0)]
+            public string[] SomeArg0 { get; set; }
+
+            [Argument(1)]
+            public string[] SomeArg1 { get; set; }
         }
     }
 }
