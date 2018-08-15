@@ -73,10 +73,9 @@ namespace LH.CommandLine.Options.Validation
         {
             foreach (var switchValue in property.Switches.Values)
             {
-                if (!property.Type.IsInstanceOfType(switchValue.Value))
+                if (!property.ParsedType.IsInstanceOfType(switchValue.Value))
                 {
-                    errors.Add(
-                        $"The switch value of type {switchValue.Value.GetType()} cannot be assigned to property of type {property.Type} (property name {property.Name})");
+                    errors.Add($"The switch value of type {switchValue.Value.GetType()} cannot be assigned to property of type {property.Type} (property name {property.Name})");
                 }
             }
         }

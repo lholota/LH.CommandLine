@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using LH.CommandLine.Exceptions;
 using LH.CommandLine.Options.Factoring;
 using LH.CommandLine.Options.Metadata;
@@ -35,15 +34,15 @@ namespace LH.CommandLine.Options
         {
             _optionsMetadataValidator.Validate();
 
-            var errorsCollection = new OptionsParsingErrors();
-            var optionsValues = new OptionsValues(_optionsMetadata);
             OptionPropertyMetadata matchingProperty;
+
+            var parsingContext = new OptionsParsingContext(_optionsMetadata);
 
             for (var i = 0; i < args.Length; i++)
             {
                 if (_optionsMetadata.TryGetSwitchValueByName(args[i], out var switchValue))
                 {
-                    optionsValues.SetValue(switchValue);
+                    parsingContext.AddValue(switchValue.PropertyMetadata, switchValue.Value);
                     continue;
                 }
 
@@ -51,11 +50,11 @@ namespace LH.CommandLine.Options
                 {
                     if (matchingProperty.IsCollection)
                     {
-                        ParseAndSetCollectionValue(errorsCollection, optionsValues, matchingProperty, args, ref i);
+                        ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
                     }
                     else
                     {
-                        ParseAndSetValue(errorsCollection, optionsValues, matchingProperty, args[i]);
+                        ParseAndSetValue(parsingContext, matchingProperty, args[i]);
                     }
 
                     continue;
@@ -68,93 +67,79 @@ namespace LH.CommandLine.Options
                         if (matchingProperty.IsCollection)
                         {
                             i++; // Skip the option name
-                            ParseAndSetCollectionValue(errorsCollection, optionsValues, matchingProperty, args, ref i);
+                            ParseAndSetCollectionValue(parsingContext, matchingProperty, args, ref i);
                         }
                         else
                         {
-                            ParseAndSetValue(errorsCollection, optionsValues, matchingProperty, args[i + 1]);
+                            ParseAndSetValue(parsingContext, matchingProperty, args[i + 1]);
                             i++;
                         }
                         continue;
                     }
                 }
 
-                errorsCollection.AddInvalidOptionError(args[i]);
+                parsingContext.AddInvalidOptionError(args[i]);
             }
 
-            var options = _optionsFactory.CreateOptions(optionsValues);
-
+            var options = _optionsFactory.CreateOptions(parsingContext.GetValues());
             var validationErrors = _optionsValidator.ValidateOptions(options);
-            errorsCollection.AddValidationErrors(validationErrors);
 
-            if (errorsCollection.Any())
+            parsingContext.AddValidationErrors(validationErrors);
+
+            if (parsingContext.HasErrors)
             {
-                throw new InvalidOptionsException(errorsCollection);
+                throw new InvalidOptionsException(parsingContext.Errors);
             }
 
             return options;
         }
 
-        private void ParseAndSetCollectionValue(OptionsParsingErrors errors, OptionsValues values, OptionPropertyMetadata propertyMetadata, string[] args, ref int index)
+        private void ParseAndSetCollectionValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string[] args, ref int index)
         {
-            var itemsStartIndex = index;
+            var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
 
-            // + 1 is used to peek one value ahead. The first item is always a collection item (?)
-            while (index + 1 < args.Length && !_optionsMetadata.IsKeyword(args[index + 1]))
+            while (index < args.Length)
             {
+                if (_optionsMetadata.IsKeyword(args[index]))
+                {
+                    index--;
+                    break;
+                }
+
+                try
+                {
+                    var parsedValue = parser.Parse(args[index], propertyMetadata.ParsedType);
+                    context.AddValue(propertyMetadata, parsedValue);
+                }
+                catch (DuplicateValueException)
+                {
+                    context.AddSpecifiedMultipleTimesError(propertyMetadata);
+                }
+                catch (Exception)
+                {
+                    context.AddInvalidValueError(propertyMetadata, args[index]);
+                }
+
                 index++;
-            }
-
-            var length = index - itemsStartIndex + 1;
-            var rawValues = new string[length];
-            Array.Copy(args, itemsStartIndex, rawValues, 0, length);
-
-            object parsedValue;
-            var parser = _valueParserSelector.GetParserForCollectionProperty(propertyMetadata);
-
-            try
-            {
-                parsedValue = parser.Parse(rawValues, propertyMetadata);
-            }
-            catch (Exception ex)
-            {
-                errors.AddInvalidValueError(propertyMetadata, rawValues);
-                return;
-            }
-
-            try
-            {
-                values.SetValue(propertyMetadata, parsedValue);
-            }
-            catch (DuplicateValueException)
-            {
-                errors.AddSpecifiedMultipleTimesError(propertyMetadata);
             }
         }
 
-        private void ParseAndSetValue(OptionsParsingErrors errors, OptionsValues values, OptionPropertyMetadata propertyMetadata, string rawValue)
+        private void ParseAndSetValue(OptionsParsingContext context, OptionPropertyMetadata propertyMetadata, string rawValue)
         {
-            object parsedValue;
-
             var parser = _valueParserSelector.GetParserForProperty(propertyMetadata);
 
             try
             {
-                parsedValue = parser.Parse(rawValue, propertyMetadata.Type);
-            }
-            catch (Exception ex)
-            {
-                errors.AddInvalidValueError(propertyMetadata, rawValue);
-                return;
-            }
-
-            try
-            {
-                values.SetValue(propertyMetadata, parsedValue);
+                var parsedValue = parser.Parse(rawValue, propertyMetadata.Type);
+                context.AddValue(propertyMetadata, parsedValue);
             }
             catch (DuplicateValueException)
             {
-                errors.AddSpecifiedMultipleTimesError(propertyMetadata);
+                context.AddSpecifiedMultipleTimesError(propertyMetadata);
+            }
+            catch (Exception)
+            {
+                context.AddInvalidValueError(propertyMetadata, rawValue);
             }
         }
     }
