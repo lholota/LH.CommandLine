@@ -74,7 +74,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Throws<InvalidOptionsDefinitionException>(() => parser.Parse(new string[0]));
         }
 
-
         private class OptionsWithInvalidSwitchValue
         {
             [Switch("some-switch", Value = 32)]

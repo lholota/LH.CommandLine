@@ -30,7 +30,6 @@ namespace LH.CommandLine.UnitTests.OptionsParser
             Assert.Equal(DefaultValue, options.Email);
         }
 
-
         [Fact]
         public void ShouldReturnDefaultValue_WhenDefaultValueIsOfDerivedType()
         {
