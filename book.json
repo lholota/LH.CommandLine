@@ -2,21 +2,5 @@
 	"root": "docs",
 	"title": "LH.CommandLine",
 	"author": "Lukas Holota",
-	"language": "en",
-	"plugins": [ "versions" ],
-    "pluginsConfig": {
-        "versions": {
-			"gitbookConfigURL": "https://raw.githubusercontent.com/lholota/LH.CommandLine/master/book.json",
-            "options": [
-				{
-					"value": "https://raw.githubusercontent.com/lholota/LH.CommandLine/master/docs/v1.x/",
-					"text": "Version 1.x"
-				},
-				{
-					"value": "https://raw.githubusercontent.com/lholota/LH.CommandLine/master/docs/v2.x/",
-					"text": "Test 2.x"
-				}
-			]
-        }
-    }
+	"language": "en"
 }
