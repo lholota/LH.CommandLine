@@ -1,5 +1,0 @@
-Property can be
-- Named option -> can have default value
-- Positional argument -> can have default value
-- Both
-- Bool property with a switch -> Does this make sense?
